@@ -55,9 +55,12 @@ FYP_df <- read.csv(path,stringsAsFactors = FALSE)
 colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
 
 episode = read.csv(path2,stringsAsFactors = FALSE)
-participants <- read.csv('Data/Participant_Data/FYP_Twitter_Participants_20.04.csv')
+participants <- read.csv('Data/Participant_Data/FYP_Twitter_Participants.csv')
 
-
+ct = 14
+percent_complete <- 0.5
+DE_duration <- 10
+#############################################################
 #keep participants from free recruitment (OCI_6 coded as NA) and those who successfully completed the 
 #attention check
 participants <- participants[which(is.na(participants$OCI_6) | participants$OCI_6 == 1),]
@@ -81,18 +84,16 @@ FYP_df_subset <- FYP_df[which(FYP_df$Id %!in% remove_ids),]
 FYP_df_subset$Depressed_today <- as.factor(FYP_df_subset$Depressed_today)
 ######################################################################################
 #Participants are included if they have at least 1 depressive with the following characteristics:
-#1. Have at least 80% of days in the 30 day period prior to a critical transiton with Tweet days
+#1. Have at least 50% of days in the 14 day period prior to a critical transiton with Tweet days
 #2. Have at least 10 days of Tweets within a depressive episode
-#3. Have at least 60 days from the end of one depressive episode to the start of another depressive episode 
 
 #participants with 
-list_names <- unique(episode$Id[which((episode$Critical_Transition >= (14*0.5)) & (episode$Depressive_Episode >= 10))])
-
-
+list_names <- unique(episode$Id[which((episode$Critical_Transition >= (ct*percent_complete)) & (episode$Depressive_Episode >= DE_duration))])
 episode2 <- episode[which(episode$Id %in% list_names),]
 FYP_df_subset <- FYP_df_subset[which(FYP_df_subset$Id %in% unique(episode2$Id)),]
-#remove outliers in any of the sentiments (LIWC and ANEW)
-FYP_df_subset[,6:93]= remove_all_outliers(FYP_df_subset[6:93])
+
+#remove outliers in any of the sentiments (LIWC and ANEW) within-subject 
+FYP_df_subset <- FYP_df_subset %>% group_by(Id) %>% mutate_at(vars(colnames(FYP_df_subset)[6:93]), funs(remove_outliers))
 #############################################################################
 
 #linear mixed model with random slopes and random intercepts 
@@ -103,7 +104,8 @@ summary(fm)
 fm <- lmer(posemo ~ Depressed_today +  ( 1 + Depressed_today|Id),data = FYP_df_subset)
 summary(fm)
 
-
+fm <- lmer(anger ~ Depressed_today +  ( 1 + Depressed_today|Id),data = FYP_df_subset)
+summary(fm)
 #############################################################################
 #Figures - boxplot and spaghetti plot 
 
