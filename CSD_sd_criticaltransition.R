@@ -134,6 +134,7 @@ for(handle in id_list) {
     #first depressive episode in a time series    
     if(ex1_ep$Start[i] == 0){
       
+      #select days that occur between start of series and beginning of current depressive episode 
       ex1.1 <- ex1.1 <- ex1[which(ex1$Day %in% (ex1_ep$Start[i]):(ex1_ep$End[i]-1)),]
       
       if(length(ex1.1$Day) >= 2*ct) {
@@ -196,6 +197,7 @@ for(handle in id_list) {
     #nth depressive episode, start of non-depressed days begins after a depressive episode     
     if(ex1_ep$Start[i] != 0) {
       
+      #select days that occur between end of prior depressive episode and beginning of current depressive episode 
       ex1.1 <- ex1[which(ex1$Day %in% (ex1_ep$Start[i]+1):(ex1_ep$End[i]-1)),]
       
       if(length(ex1.1$Day) >= 2*ct){
