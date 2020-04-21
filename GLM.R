@@ -2,7 +2,9 @@ library(dplyr)
 library(ggplot2)
 library(lmerTest)
 library(Hmisc)
-
+library(bootnet)
+library(qgraph)
+library(NetworkComparisonTest)
 #Sentiment analysis averaged over past year 
 #Tweets, retweets, and likes 
 setwd('D:/Twitter_Depression_Kelley/')
@@ -36,8 +38,6 @@ remove_all_outliers <- function(d){
 
 FYP_df <- read.csv('Data/Sentiments/all_tweets/VADER_ANEW_LIWC_complete.csv')
 colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
-
-
 
 participants <- read.csv('Data/Participant_Data/FYP_Twitter_Participants.csv')
 participants <- participants[which(is.na(participants$OCI_6) | participants$OCI_6 == 1),]
@@ -137,3 +137,55 @@ ggplot(FYP, aes(x=Dep_ep_pastyear, y=negemo)) +
     axis.title.x = element_text(size = 16),
     axis.text.x = element_text(size = 14),
     axis.title.y = element_text(size = 16))
+
+
+##############################################################################
+#Between-subjects network 
+
+f1 <- FYP %>% select(Id, Dep_ep_pastyear,WC,bio,WPS,negemo,shehe,adverb,leisure,Exclam,death,
+                               Sixltr,relig,verb,compare,we,sad)
+
+
+f1.dep <- f1 %>% filter(Dep_ep_pastyear == 1) %>% select(-c(Dep_ep_pastyear))
+f1.nodep <- f1 %>% filter(Dep_ep_pastyear == 0) %>% select(-c(Dep_ep_pastyear))
+
+#depressed network
+N1 <- estimateNetwork(f1.dep[,2:16],default = "EBICglasso",tuning=0.5,corMethod = "cor_auto")
+
+#non-depressed network
+N2 <- estimateNetwork(f1.nodep[,2:16],default = "EBICglasso",tuning=0.5,corMethod = "cor_auto")
+
+N1_graph <- qgraph(N1$graph,layout="spring",labels = colnames(N1$graph))
+
+#centrality values using raw-values
+centralityPlot(list(Depressed = N1,Not_Depressed=N2),include = c("Closeness","Betweenness","Strength"),
+               scale = "raw")
+
+#network plots 
+qgraph(N1$graph,layout="spring",labels = colnames(N1$graph))
+layout_N1 <- qgraph(N1$graph,layout="spring",labels = colnames(N1$graph))$layout
+qgraph(N2$graph,layout=layout_N1,labels = colnames(N1$graph))
+
+
+N1N2_NCT <- NCT(f1.dep[,2:16],f1.nodep[,2:16],binary.data = FALSE,
+                   paired = FALSE, weighted = TRUE, abs = TRUE, test.centrality = TRUE, gamma = 0.5,
+                   centrality = c("closeness","betweenness","strength"))
+
+
+
+#network stability for N1 (depressed) and N2 (non-depressed) 
+N1_stab <- bootnet(N1,nBoots = 1000, nCores = 8, type = "case",
+                   statistics = c("closeness","betweenness","strength"),caseN = 1000)
+plot(N1_stab,statistics = c("closeness","betweenness","strength"))
+corStability(N1_stab)
+
+
+
+#network stability for N1 (depressed) and N2 (non-depressed) 
+N2_stab <- bootnet(N2,nBoots = 1000, nCores = 8, type = "case",
+                   statistics = c("closeness","betweenness","strength"),caseN = 1000)
+plot(N2_stab,statistics = c("closeness","betweenness","strength"))
+corStability(N2_stab)
+
+
+
