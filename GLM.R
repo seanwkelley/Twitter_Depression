@@ -99,14 +99,14 @@ summary(glm(arousal ~ SDS_Total, family = "gaussian",data = FYP))
 
 #LIWC features for elasticnet regression 
 
-write.csv(FYP[,290:378], file = "elasticNet/liwc_features.csv",
+write.csv(FYP[,291:377], file = "Data/elasticNet/liwc_features.csv",
           row.names = FALSE)
 
 #SDS total score 
-sds_target <- as.data.frame(FYP[,379])
+sds_target <- as.data.frame(FYP[,378])
 colnames(sds_target) <- "SDS_Total"
 
-write.csv(sds_target, file = "elasticNet/sds_target.csv",
+write.csv(sds_target, file = "Data/elasticNet/sds_target.csv",
           row.names = FALSE)
 
 
