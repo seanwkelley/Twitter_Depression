@@ -55,7 +55,7 @@ weight_WC <- function(d){
 #############################################################
 setwd('D:/Twitter_Depression_Kelley/')
 
-tweet_type = "all_tweets"
+tweet_type = "tweet"
 path = paste0('Data/Sentiments/',tweet_type,"/VADER_ANEW_LIWC_complete_dep.csv",collapse = "")
 path2 = paste0('Data/Sentiments/',tweet_type,"/CSD_Episodes.csv",collapse = "")
 
