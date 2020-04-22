@@ -327,7 +327,7 @@ def weighted_mean(values):
     return(weighted_avg)
 
 def ANEW_Sentiment(test):
-    ANEW = pd.read_csv('ANEW_Library/ANEW2017All.txt', sep="\t")
+    ANEW = pd.read_csv('Data/ANEW_Library/ANEW2017All.txt', sep="\t")
     ANEW_words = list(ANEW['Word'])
     test = word_tokenize(test)
     val = []; aro = []; dom = []

@@ -104,7 +104,7 @@ summary(fm)
 fm <- lmer(posemo ~ Depressed_today +  ( 1 + Depressed_today|Id),data = FYP_df_subset)
 summary(fm)
 
-fm <- lmer(anger ~ Depressed_today +  ( 1 + Depressed_today|Id),data = FYP_df_subset)
+fm <- lmer(shehe ~ Depressed_today +  ( 1 + Depressed_today|Id),data = FYP_df_subset)
 summary(fm)
 #############################################################################
 #Figures - boxplot and spaghetti plot 
