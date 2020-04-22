@@ -145,6 +145,12 @@ ggplot(FYP, aes(x=Dep_ep_pastyear, y=negemo)) +
 f1 <- FYP %>% select(Id, Dep_ep_pastyear,WC,bio,WPS,negemo,shehe,adverb,leisure,Exclam,death,
                                Sixltr,relig,verb,compare,we,sad)
 
+N1_full <- estimateNetwork(f1[,3:17],default = "EBICglasso",tuning=0.5,corMethod = "cor_auto")
+qgraph(N1_full$graph,layout="spring",labels = colnames(N1_full$graph))
+
+centralityPlot(list(Complete_Sample = N1_full),include = c("Closeness","Betweenness","Strength"),
+               scale = "z-score")
+
 
 f1.dep <- f1 %>% filter(Dep_ep_pastyear == 1) %>% select(-c(Dep_ep_pastyear))
 f1.nodep <- f1 %>% filter(Dep_ep_pastyear == 0) %>% select(-c(Dep_ep_pastyear))
@@ -173,7 +179,14 @@ N1N2_NCT <- NCT(f1.dep[,2:16],f1.nodep[,2:16],binary.data = FALSE,
 
 
 
-#network stability for N1 (depressed) and N2 (non-depressed) 
+#network stability for N1_full (all participants), N1 (depressed), and N2 (non-depressed) 
+N1_full_stab <- bootnet(N1_full,nBoots = 1000, nCores = 8, type = "case",
+                   statistics = c("closeness","betweenness","strength"),caseN = 1000)
+plot(N1_full_stab,statistics = c("closeness","betweenness","strength"))
+corStability(N1_full_stab)
+
+
+
 N1_stab <- bootnet(N1,nBoots = 1000, nCores = 8, type = "case",
                    statistics = c("closeness","betweenness","strength"),caseN = 1000)
 plot(N1_stab,statistics = c("closeness","betweenness","strength"))
