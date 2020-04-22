@@ -55,7 +55,7 @@ weight_WC <- function(d){
 #############################################################
 setwd('D:/Twitter_Depression_Kelley/')
 
-tweet_type = "tweet"
+tweet_type = "all_tweets"
 path = paste0('Data/Sentiments/',tweet_type,"/VADER_ANEW_LIWC_complete_dep.csv",collapse = "")
 path2 = paste0('Data/Sentiments/',tweet_type,"/CSD_Episodes.csv",collapse = "")
 
@@ -69,7 +69,7 @@ participants <- read.csv('Data/Participant_Data/FYP_Twitter_Participants.csv')
 ct <- 14 #interval to compute variance over   
 percent_complete = 0
 
-var <- 'death' #which sentiment to use 
+var <- 'negemo' #which sentiment to use 
 
 #############################################################
 #############################################################
@@ -409,6 +409,26 @@ summary(glmer(Time ~ SD + Mean + WC +(1|Id),data =df,binomial(link = "logit")))
 
 ########################################################################
 #Figures
+
+
+#correlation between Mean and SD 
+ggplot(data = df, aes(x = Mean,y=SD)) + geom_point() + xlab("Sentiment Mean")  +
+  theme_bw() + theme(axis.text.x = element_text(size=20),
+                     axis.text.y = element_text(size=15),
+                     axis.title.x = element_text(size = 20),
+                     axis.title.y = element_text(size = 20)) + 
+ggtitle("Sentiment: negemo \nIncludes: Tweets + Retweets + Likes") 
+
+#corelation between Mean and WC
+ggplot(data = df, aes(x = Mean,y=WC)) + geom_point() + xlab("Sentiment Mean")  +
+  theme_bw() + theme(axis.text.x = element_text(size=20),
+                     axis.text.y = element_text(size=15),
+                     axis.title.x = element_text(size = 20),
+                     axis.title.y = element_text(size = 20)) + 
+  ggtitle("Sentiment: i \nIncludes: Tweets + Retweets + Likes") 
+
+
+
 
 df$Time <-  factor(df$Time, levels = c("0", "1"))
 
