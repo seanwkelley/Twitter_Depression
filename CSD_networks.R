@@ -58,6 +58,24 @@ colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
 episode = read.csv(path2,stringsAsFactors = FALSE)
 participants <- read.csv('Data/Participant_Data/FYP_Twitter_Participants.csv')
 
+participants$SDS_2 <- 5 - participants$SDS_2
+participants$SDS_5 <- 5 - participants$SDS_5
+participants$SDS_6 <- 5 - participants$SDS_6
+participants$SDS_11 <- 5 - participants$SDS_11
+participants$SDS_12 <- 5 - participants$SDS_12
+participants$SDS_14 <- 5 - participants$SDS_14
+participants$SDS_16 <- 5 - participants$SDS_16
+participants$SDS_17 <- 5 - participants$SDS_17
+participants$SDS_18 <- 5 - participants$SDS_18
+participants$SDS_20 <- 5 - participants$SDS_20
+
+#SDS: Score system
+#Below 50 is considered normal range - 502 people (54.5%)
+#50-59 is mild depression - 259 people (28.1%)
+#60-69 is moderate depression - 138 people (14.9%)
+#above 70 is severe depression - 24 people (2.9%)
+
+participants$SDS_Total <- rowSums(participants %>% select(colnames(participants)[grepl("SDS",colnames(participants))]))
 
 #############################################################
 #############################################################
@@ -72,51 +90,29 @@ FYP_df <- FYP_df[which(FYP_df$Id %in% participants$Id),]
 FYP_df <- FYP_df[which(FYP_df$Date != ''),]
 #remove participants with either no depressed episodes reported in the past year OR 
 #participants with a depressive episode that covers the entire past year
-remove_ids <- list()
-for(i in 1:length(unique(FYP_df$Id))) {
-  print(i)
-  if( sd(as.numeric(as.character(FYP_df[which(FYP_df$Id == unique(FYP_df$Id)[i]),94]))) == 0) {
-    ld <- length(which(FYP_df[which(FYP_df$Id == unique(FYP_df$Id)[1]),94] == 1))
-    ld2 <- length(which(FYP_df[which(FYP_df$Id == unique(FYP_df$Id)[1]),94] == 0))
-    if(ld >= 10 & ld2 >= 10){
-    remove_ids[[i]] <- as.character(unique(FYP_df$Id)[i])
-    }
+
+#############################################################
+network_centrality <- list()
+
+for(id in unique(FYP_df$Id)){
+  
+  print(id)
+  en_var <- FYP_df %>% filter(Id == id) %>% select(c(WC,bio,WPS,negemo,shehe,adverb,leisure,Exclam,death,
+                                                     Sixltr,relig,verb,compare,we,sad))
+  
+  SDS <- as.numeric(participants %>% filter(Id == id) %>% select(SDS_Total))
+  Dep_ep <- as.numeric(participants %>% filter(Id == id) %>% select(Dep_ep_pastyear))
+  
+  en_var <- as.matrix(en_var)
+  if(dim(en_var)[1] >= 30 & all(apply(en_var, 2, sd) != 0)){
+  print(dim(en_var)[1])
+  net1 <- graphicalVAR(en_var, nLambda = 25, verbose = TRUE, gamma = 0)
+  net1_PCC <- qgraph(net1$PCC)
+  net1_centrality <- centrality(net1_PCC)$InDegree
+  
+  network_centrality[[id]] <- c(net1_centrality,Dep_ep,SDS)
   }
 }
+indiv_nets <- do.call(rbind, network_centrality)
+colnames(indiv_nets)[16:17] <- c("Depressive_Episode_pastyear","SDS_Total")
 
-remove_ids <- unlist(remove_ids)
-FYP_df_subset <- FYP_df[which(FYP_df$Id %!in% remove_ids),]
-
-#remove outliers in any of the sentiments (LIWC and ANEW)
-FYP_df_subset[,6:93]= remove_all_outliers(FYP_df_subset[6:93])
-FYP_df_subset$Depressed_today <- as.factor(FYP_df_subset$Depressed_today)
-
-#############################################################################
-#############################################################################
-
-#f1 <- FYP_df_subset %>% select(Day,Id, WPS,relig,WC,bio,leisure, shehe, death, negemo,work,
-#               QMark,adverb, verb, filler, compare, sad,Depressed_today)
-
-f1 <- FYP_df_subset %>% select(Day,Id, WPS,relig,WC,bio,leisure, shehe, death, negemo,work,
-               QMark,adverb, verb, filler, compare, sad,focuspresent, money, focusfuture,
-               you, Sixltr,Depressed_today)
-
-
-
-f1_mean <- aggregate(. ~ Depressed_today + Id,data = f1,FUN = mean)
-f1_mean.dep <- f1_mean %>% filter(Depressed_today == 1) %>% select(-c(Depressed_today,Day))
-f1_mean.nodep <- f1_mean %>% filter(Depressed_today == 0) %>% select(-c(Depressed_today,Day))
-
-
-#############################################################################
-N1 <- estimateNetwork(f1_mean.dep[,2:16],default = "EBICglasso",tuning=0,corMethod = "cor_auto")
-N2 <- estimateNetwork(f1_mean.nodep[,2:16],default = "EBICglasso",tuning=0,corMethod = "cor_auto")
-
-N1_graph <- qgraph(N1$graph,layout="spring",labels = colnames(N1$graph))
-centralityPlot(list(Depressed = N1,Not_Depressed=N2),include = c("Closeness","Betweenness","Strength"),
-               scale = "raw")
-
-#network plots 
-qgraph(N1$graph,layout="spring",labels = colnames(N1$graph))
-layout_N1 <- qgraph(N1$graph,layout="spring",labels = colnames(N1$graph))$layout
-qgraph(N2$graph,layout=layout_N1,labels = colnames(N1$graph))
