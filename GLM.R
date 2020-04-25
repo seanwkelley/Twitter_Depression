@@ -109,6 +109,9 @@ colnames(sds_target) <- "SDS_Total"
 write.csv(sds_target, file = "Data/elasticNet/sds_target.csv",
           row.names = FALSE)
 
+sds_individual <- as.data.frame(FYP[,which(colnames(FYP) == "SDS_1"):which(colnames(FYP) == "SDS_20")])
+write.csv(sds_individual, file = "Data/elasticNet/sds_target_individual.csv",
+          row.names = FALSE)
 
 ###################################################################################
 #Figures 
@@ -137,68 +140,4 @@ ggplot(FYP, aes(x=Dep_ep_pastyear, y=negemo)) +
     axis.title.x = element_text(size = 16),
     axis.text.x = element_text(size = 14),
     axis.title.y = element_text(size = 16))
-
-
-##############################################################################
-#Between-subjects network 
-
-f1 <- FYP %>% select(Id, Dep_ep_pastyear,WC,bio,WPS,negemo,shehe,adverb,leisure,Exclam,death,
-                               Sixltr,relig,verb,compare,we,sad)
-
-N1_full <- estimateNetwork(f1[,3:17],default = "EBICglasso",tuning=0.5,corMethod = "cor_auto")
-qgraph(N1_full$graph,layout="spring",labels = colnames(N1_full$graph))
-
-centralityPlot(list(Complete_Sample = N1_full),include = c("Closeness","Betweenness","Strength"),
-               scale = "z-score")
-
-
-f1.dep <- f1 %>% filter(Dep_ep_pastyear == 1) %>% select(-c(Dep_ep_pastyear))
-f1.nodep <- f1 %>% filter(Dep_ep_pastyear == 0) %>% select(-c(Dep_ep_pastyear))
-
-#depressed network
-N1 <- estimateNetwork(f1.dep[,2:16],default = "EBICglasso",tuning=0.5,corMethod = "cor_auto")
-
-#non-depressed network
-N2 <- estimateNetwork(f1.nodep[,2:16],default = "EBICglasso",tuning=0.5,corMethod = "cor_auto")
-
-N1_graph <- qgraph(N1$graph,layout="spring",labels = colnames(N1$graph))
-
-#centrality values using raw-values
-centralityPlot(list(Depressed = N1,Not_Depressed=N2),include = c("Closeness","Betweenness","Strength"),
-               scale = "raw")
-
-#network plots 
-qgraph(N1$graph,layout="spring",labels = colnames(N1$graph))
-layout_N1 <- qgraph(N1$graph,layout="spring",labels = colnames(N1$graph))$layout
-qgraph(N2$graph,layout=layout_N1,labels = colnames(N1$graph))
-
-
-N1N2_NCT <- NCT(f1.dep[,2:16],f1.nodep[,2:16],binary.data = FALSE,
-                   paired = FALSE, weighted = TRUE, abs = TRUE, test.centrality = TRUE, gamma = 0.5,
-                   centrality = c("closeness","betweenness","strength"))
-
-
-
-#network stability for N1_full (all participants), N1 (depressed), and N2 (non-depressed) 
-N1_full_stab <- bootnet(N1_full,nBoots = 1000, nCores = 8, type = "case",
-                   statistics = c("closeness","betweenness","strength"),caseN = 1000)
-plot(N1_full_stab,statistics = c("closeness","betweenness","strength"))
-corStability(N1_full_stab)
-
-
-
-N1_stab <- bootnet(N1,nBoots = 1000, nCores = 8, type = "case",
-                   statistics = c("closeness","betweenness","strength"),caseN = 1000)
-plot(N1_stab,statistics = c("closeness","betweenness","strength"))
-corStability(N1_stab)
-
-
-
-#network stability for N1 (depressed) and N2 (non-depressed) 
-N2_stab <- bootnet(N2,nBoots = 1000, nCores = 8, type = "case",
-                   statistics = c("closeness","betweenness","strength"),caseN = 1000)
-plot(N2_stab,statistics = c("closeness","betweenness","strength"))
-corStability(N2_stab)
-
-
 

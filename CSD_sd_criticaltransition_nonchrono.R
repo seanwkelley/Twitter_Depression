@@ -66,10 +66,10 @@ colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
 episode = read.csv(path2,stringsAsFactors = FALSE)
 participants <- read.csv('Data/Participant_Data/FYP_Twitter_Participants.csv')
 
-ct <- 14 #interval to compute variance over   
+ct <-  14 #interval to compute variance over   
 percent_complete = 0
 
-var <- 'negemo' #which sentiment to use 
+var <- 'i' #which sentiment to use 
 
 #############################################################
 #############################################################
