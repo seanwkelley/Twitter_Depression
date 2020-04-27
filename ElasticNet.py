@@ -42,9 +42,9 @@ from array import array
 os.chdir('D:/Twitter_Depression_Kelley/Data/elasticNet/')
 feature_data = pd.read_csv("liwc_features.csv",sep=",",usecols=range(0,86))
 #SDS total score
-#target_data = pd.read_csv("sds_target.csv",sep=",",usecols=range(0,1))
+target_data = pd.read_csv("sds_target.csv",sep=",",usecols=range(0,1))
 #individual SDS items
-target_data = pd.read_csv("sds_target_individual.csv",sep=",",usecols=range(0,20))
+#target_data = pd.read_csv("sds_target_individual.csv",sep=",",usecols=range(0,20))
 
 
 for feature in feature_data.select_dtypes(exclude=['object']).columns:
@@ -65,26 +65,26 @@ l1_ratio=[0.1, 0.5, 0.7, 0.9, 0.95, 0.99, 1]
 '''
 Elastic net for SDS_Total score 
 '''
-enetCV = ElasticNetCV(l1_ratio=0.9,alphas=alphas, precompute='auto', max_iter=100000, cv=cval, copy_X=True, verbose=1)
+enetCV = ElasticNetCV(l1_ratio=0.95,alphas=alphas, precompute='auto', max_iter=100000, cv=cval, copy_X=True, verbose=1)
 
-# y_pred_enet = enetCV.fit(f_data_scaled, target_data['SDS_Total'])
-# index= list(feature_data)
-# s = pd.Series(enetCV.coef_, index=index) 
-# s.sort_values()
+y_pred_enet = enetCV.fit(f_data_scaled, target_data['SDS_Total'])
+index= list(feature_data)
+s = pd.Series(enetCV.coef_, index=index) 
+s.sort_values()
 
-# enetCV.coef_
-# enetCV.alphas_
-# print(enetCV.l1_ratio_)
+enetCV.coef_
+enetCV.alphas_
+print(enetCV.l1_ratio_)
 
-# y_pred = pd.DataFrame(s)
+y_pred = pd.DataFrame(s)
 
-# #save variables from enet to csv file 
-# y_pred.to_csv('enet_10f.csv',index = True)
+#save variables from enet to csv file 
+y_pred.to_csv('enet_10f_l1_0.95.csv',index = True)
 
 
 
 #Elastic net for individual SDS items 
-
+'''
 y_pred =  pd.Series([])
 
 for colname in target_data.columns:
@@ -116,3 +116,4 @@ y_pred.columns = ['SDS_1', 'SDS_2', 'SDS_3','SDS_4','SDS_5','SDS_6','SDS_7','SDS
 
 # print(y_pred.columns)
 y_pred.to_csv('enet_10f_individual_l1_0.9.csv',index = True)
+'''
