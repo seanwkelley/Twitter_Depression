@@ -48,10 +48,6 @@ FYP_df_mean <- aggregate(. ~ Id , data = FYP_df, FUN = "mean")
 #remove outliers greater or less than 3 sd from the mean 
 FYP_df_mean[,6:93]= remove_all_outliers(FYP_df_mean[6:93])
 
-#create a 3rd person pronoun category 
-FYP_df_mean$pro3 <- (FYP_df_mean$shehe + FYP_df_mean$they)/2
-
-
 #merge sentiments and participants data 
 FYP <- merge(participants,FYP_df_mean,by='Id')
 
@@ -76,37 +72,17 @@ FYP$SDS_20 <- 5 - FYP$SDS_20
 FYP$SDS_Total <- rowSums(FYP %>% select(colnames(FYP)[grepl("SDS",colnames(FYP))]))
 FYP$Dep_ep_pastyear <- as.factor(FYP$Dep_ep_pastyear)
 FYP$Depression_Physician <- as.factor(FYP$Depression_Physician)
-##########################################################
-f1_cor <- FYP %>% select(colnames(FYP)[291:376],SDS_Total)
-
-
-r.mat = rcorr(as.matrix(na.omit(f1_cor)))$r
-p.mat = rcorr(as.matrix(na.omit(f1_cor)))$P
-
-corrplot::corrplot(r.mat,method = "square",p.mat = p.mat,sig.level = 0.05,insig = "blank", mar = c(2,0,2,0),
-                   cl.lim=c(-1,1),is.corr = FALSE)
-
-
 
 ##################################################################
-#Variables selected by Elastic Net to be most highly associated with SDS Total score 
+##################################################################
 
-f1 <- FYP %>% select(Id, Dep_ep_pastyear,WC,bio,WPS,negemo,shehe,adverb,leisure,Exclam,death,
-                     Sixltr,relig,verb,compare,we,sad)
+#Top 10 Sentiments selected by Elastic Net (l1 ratio - 0.9) to be most highly associated with SDS Total score 
 
-f1_cor <- FYP %>% select(WC,bio,WPS,negemo,shehe,adverb,leisure,Exclam,death,
-                     Sixltr,relig,verb,compare,we,sad,SDS_Total)
+f1 <- FYP %>% select(Id,SDS_Total, Dep_ep_pastyear,WC,bio,WPS,negemo,shehe,adverb,leisure,Exclam,death,
+                     Sixltr)
 
-f1_cor <- FYP %>% select(WC,bio,WPS,negemo,adverb,leisure,death,
-                         Sixltr,verb,we,sad,SDS_Total)
 
-r.mat = rcorr(as.matrix(na.omit(f1_cor)))$r
-p.mat = rcorr(as.matrix(na.omit(f1_cor)))$P
-
-corrplot::corrplot(r.mat,method = "square",p.mat = p.mat,sig.level = 0.05,insig = "blank", mar = c(2,0,2,0),
-                   cl.lim=c(-1,1),is.corr = FALSE)
-
-N1_full <- estimateNetwork(f1[,3:17],default = "EBICglasso",tuning=0.5,corMethod = "cor_auto")
+N1_full <- estimateNetwork(f1[,3:12],default = "EBICglasso",tuning=0.5,corMethod = "cor_auto")
 qgraph(N1_full$graph,layout="spring",labels = colnames(N1_full$graph))
 
 centralityPlot(list(Complete_Sample = N1_full),include = c("Closeness","Betweenness","Strength"),
@@ -117,10 +93,10 @@ f1.dep <- f1 %>% filter(Dep_ep_pastyear == 1) %>% select(-c(Dep_ep_pastyear))
 f1.nodep <- f1 %>% filter(Dep_ep_pastyear == 0) %>% select(-c(Dep_ep_pastyear))
 
 #depressed network
-N1 <- estimateNetwork(f1.dep[,2:16],default = "EBICglasso",tuning=0.25,corMethod = "cor_auto")
+N1 <- estimateNetwork(f1.dep[,3:11],default = "EBICglasso",tuning=0.5,corMethod = "cor_auto",missing = "pairwise")
 
 #non-depressed network
-N2 <- estimateNetwork(f1.nodep[,2:16],default = "EBICglasso",tuning=0.25,corMethod = "cor_auto")
+N2 <- estimateNetwork(f1.nodep[,3:11],default = "EBICglasso",tuning=0.5,corMethod = "cor_auto",missing = "pairwise")
 
 N1_graph <- qgraph(N1$graph,layout="spring",labels = colnames(N1$graph))
 
@@ -134,11 +110,57 @@ layout_N1 <- qgraph(N1$graph,layout="spring",labels = colnames(N1$graph))$layout
 qgraph(N2$graph,layout=layout_N1,labels = colnames(N1$graph))
 
 
-N1N2_NCT <- NCT(f1.dep[,2:16],f1.nodep[,2:16],binary.data = FALSE,
+#permutation test 
+EN_NCT <- NCT(N1,N2,binary.data = FALSE,
                 paired = FALSE, weighted = TRUE, abs = TRUE, test.centrality = TRUE, gamma = 0.5,
                 centrality = c("closeness","betweenness","strength"))
 
+###########################################################################################
 
+dep1 <- f1 %>% filter(SDS_Total < 38) %>% select(-c(Id,Dep_ep_pastyear,SDS_Total))
+dep2 <- f1 %>% filter(SDS_Total >= 38 & SDS_Total < 48) %>% select(-c(Id,Dep_ep_pastyear,SDS_Total))
+dep3 <- f1 %>% filter(SDS_Total >= 48 & SDS_Total < 56) %>% select(-c(Id,Dep_ep_pastyear,SDS_Total))
+dep4 <- f1 %>% filter(SDS_Total >= 56) %>% select(-c(Id,Dep_ep_pastyear,SDS_Total))
+
+#depressed network
+dep1_Net <- estimateNetwork(dep1,default = "EBICglasso",tuning=0.5,corMethod = "cor_auto",missing = "pairwise")
+dep2_Net <- estimateNetwork(dep2,default = "EBICglasso",tuning=0.5,corMethod = "cor_auto",missing = "pairwise")
+dep3_Net <- estimateNetwork(dep3,default = "EBICglasso",tuning=0.5,corMethod = "cor_auto",missing = "pairwise")
+dep4_Net <- estimateNetwork(dep4,default = "EBICglasso",tuning=0.5,corMethod = "cor_auto",missing = "pairwise")
+
+
+centralityPlot(list(Q1 = dep1_Net,Q2=dep2_Net,Q3 = dep3_Net,Q4 = dep4_Net),include = c("Closeness","Betweenness","Strength"),
+               scale = "raw")
+
+
+
+#permutation test 
+EN_NCT <- NCT(dep1_Net,dep4_Net,binary.data = FALSE,it = 1000,
+              paired = FALSE, weighted = TRUE, abs = TRUE, test.centrality = TRUE, gamma = 0.5,
+              centrality = c("closeness","betweenness","strength"))
+
+
+dep1 <- f1 %>% filter(SDS_Total < 50) %>% select(-c(Id,Dep_ep_pastyear,SDS_Total))
+dep2 <- f1 %>% filter(SDS_Total >= 50 & SDS_Total <= 59) %>% select(-c(Id,Dep_ep_pastyear,SDS_Total))
+dep3 <- f1 %>% filter(SDS_Total >= 60) %>% select(-c(Id,Dep_ep_pastyear,SDS_Total))
+
+
+#depressed network
+dep1_Net <- estimateNetwork(dep1,default = "EBICglasso",tuning=0.25,corMethod = "cor_auto",missing = "pairwise")
+dep2_Net <- estimateNetwork(dep2,default = "EBICglasso",tuning=0.25,corMethod = "cor_auto",missing = "pairwise")
+dep3_Net <- estimateNetwork(dep3,default = "EBICglasso",tuning=0.25,corMethod = "cor_auto",missing = "pairwise")
+
+
+centralityPlot(list(Q1 = dep1_Net,Q2=dep2_Net,Q3 = dep3_Net),include = c("Closeness","Betweenness","Strength"),
+               scale = "raw")
+
+
+
+#permutation test 
+EN_NCT <- NCT(dep1_Net,dep3_Net,binary.data = FALSE,it = 100,
+              paired = FALSE, weighted = TRUE, abs = TRUE, test.centrality = TRUE, gamma = 0.5,
+              centrality = c("closeness","betweenness","strength"))
+############################################################################################
 
 #network stability for N1_full (all participants), N1 (depressed), and N2 (non-depressed) 
 N1_full_stab <- bootnet(N1_full,nBoots = 1000, nCores = 8, type = "case",
@@ -164,47 +186,11 @@ corStability(N2_stab)
 
 
 ##################################################################
-#Variables selected by Elastic Net to be least strongly associated with SDS Total score 
-
-f1 <- FYP %>% select(Id, Dep_ep_pastyear,focuspresent,money,focusfuture,social,adj,work,article,
-                                                filler,relativ,prep)
-
-f1_cor <- FYP %>% select(Analytic,Clout,Authentic,Tone,Dic,function.,pronoun,ppron,i, they, SDS_Total)
-
-
-r.mat = rcorr(as.matrix(na.omit(f1_cor)))$r
-p.mat = rcorr(as.matrix(na.omit(f1_cor)))$P
-
-corrplot::corrplot(r.mat,method = "square",p.mat = p.mat,sig.level = 0.05,insig = "blank", mar = c(2,0,2,0),
-                   cl.lim=c(-1,1),is.corr = FALSE)
-
-N1_full <- estimateNetwork(f1[,3:12],default = "EBICglasso",tuning=0.5,corMethod = "cor_auto")
-qgraph(N1_full$graph,layout="spring",labels = colnames(N1_full$graph))
-
-centralityPlot(list(Complete_Sample = N1_full),include = c("Closeness","Betweenness","Strength"),
-               scale = "z-score")
-
-
-f1.dep <- f1 %>% filter(Dep_ep_pastyear == 1) %>% select(-c(Dep_ep_pastyear))
-f1.nodep <- f1 %>% filter(Dep_ep_pastyear == 0) %>% select(-c(Dep_ep_pastyear))
-
-#depressed network
-N1 <- estimateNetwork(f1.dep[,2:11],default = "EBICglasso",tuning=0,corMethod = "cor_auto")
-
-#non-depressed network
-N2 <- estimateNetwork(f1.nodep[,2:11],default = "EBICglasso",tuning=0,corMethod = "cor_auto")
-
-N1_graph <- qgraph(N1$graph,layout="spring",labels = colnames(N1$graph))
-
-#centrality values using raw-values
-centralityPlot(list(Depressed = N1,Not_Depressed=N2),include = c("Closeness","Betweenness","Strength"),
-               scale = "raw")
-
 ##################################################################
 #Variables selected from de Choudhury 
 
 
-f1 <- FYP %>% select(Id, Dep_ep_pastyear,negemo,posemo,i,we,shehe,they,you,swear,article,negate)   
+f1 <- FYP %>% select(Id,SDS_Total, Dep_ep_pastyear,negemo,posemo,i,we,shehe,they,you,swear,article,negate)   
 
 f1_cor <- FYP %>% select(negemo,posemo,i,we,pro3,you,swear,article,negate,SDS_Total)   
 
@@ -227,13 +213,57 @@ f1.dep <- f1 %>% filter(Dep_ep_pastyear == 1) %>% select(-c(Dep_ep_pastyear))
 f1.nodep <- f1 %>% filter(Dep_ep_pastyear == 0) %>% select(-c(Dep_ep_pastyear))
 
 #depressed network
-N1 <- estimateNetwork(f1.dep[,2:11],default = "EBICglasso",tuning=0,corMethod = "cor_auto")
+N1 <- estimateNetwork(f1.dep[,2:11],default = "EBICglasso",tuning=0.5,corMethod = "cor_auto",missing = "pairwise")
 
 #non-depressed network
-N2 <- estimateNetwork(f1.nodep[,2:11],default = "EBICglasso",tuning=0,corMethod = "cor_auto")
+N2 <- estimateNetwork(f1.nodep[,2:11],default = "EBICglasso",tuning=0.5,corMethod = "cor_auto",missing = "pairwise")
 
 N1_graph <- qgraph(N1$graph,layout="spring",labels = colnames(N1$graph))
 
 #centrality values using raw-values
 centralityPlot(list(Depressed = N1,Not_Depressed=N2),include = c("Closeness","Betweenness","Strength"),
                scale = "raw")
+
+dc.net_comp <- NCT(N1,N2,binary.data = FALSE,
+                paired = FALSE, weighted = TRUE, abs = TRUE, test.centrality = TRUE, gamma = 0.5,
+                centrality = c("closeness","betweenness","strength"))
+###########################################################################################3
+
+dep1 <- f1 %>% filter(SDS_Total < 38) %>% select(-c(Id,Dep_ep_pastyear,SDS_Total))
+dep2 <- f1 %>% filter(SDS_Total >= 38 & SDS_Total < 48) %>% select(-c(Id,Dep_ep_pastyear,SDS_Total))
+dep3 <- f1 %>% filter(SDS_Total >= 48 & SDS_Total < 56) %>% select(-c(Id,Dep_ep_pastyear,SDS_Total))
+dep4 <- f1 %>% filter(SDS_Total >= 56) %>% select(-c(Id,Dep_ep_pastyear,SDS_Total))
+
+#depressed network
+dep1_Net <- estimateNetwork(dep1,default = "EBICglasso",tuning=0.5,corMethod = "cor_auto",missing = "pairwise")
+dep2_Net <- estimateNetwork(dep2,default = "EBICglasso",tuning=0.5,corMethod = "cor_auto",missing = "pairwise")
+dep3_Net <- estimateNetwork(dep3,default = "EBICglasso",tuning=0.5,corMethod = "cor_auto",missing = "pairwise")
+dep4_Net <- estimateNetwork(dep4,default = "EBICglasso",tuning=0.5,corMethod = "cor_auto",missing = "pairwise")
+
+
+centralityPlot(list(Q1 = dep1_Net,Q2=dep2_Net,Q3 = dep3_Net,Q4 = dep4_Net),include = c("Closeness","Betweenness","Strength"),
+               scale = "raw")
+EN_NCT <- NCT(dep1_Net,dep4_Net,binary.data = FALSE,it = 1000,
+              paired = FALSE, weighted = TRUE, abs = TRUE, test.centrality = TRUE, gamma = 0.5,
+              centrality = c("closeness","betweenness","strength"))
+
+##############################################################################################
+dep1 <- f1 %>% filter(SDS_Total <= 31) %>% select(-c(Id,Dep_ep_pastyear,SDS_Total))
+dep2 <- f1 %>% filter(SDS_Total >= 63) %>% select(-c(Id,Dep_ep_pastyear,SDS_Total))
+
+
+#depressed network
+dep1_Net <- estimateNetwork(dep1,default = "EBICglasso",tuning=0.25,corMethod = "cor_auto",missing = "pairwise")
+dep2_Net <- estimateNetwork(dep2,default = "EBICglasso",tuning=0.25,corMethod = "cor_auto",missing = "pairwise")
+dep3_Net <- estimateNetwork(dep3,default = "EBICglasso",tuning=0.25,corMethod = "cor_auto",missing = "pairwise")
+
+
+centralityPlot(list(Q1 = dep1_Net,Q2=dep2_Net),include = c("Closeness","Betweenness","Strength"),
+               scale = "raw")
+
+
+
+#permutation test 
+EN_NCT <- NCT(dep1_Net,dep2_Net,binary.data = FALSE,it = 100,
+              paired = FALSE, weighted = TRUE, abs = TRUE, test.centrality = TRUE, gamma = 0.5,
+              centrality = c("closeness","betweenness","strength"))
