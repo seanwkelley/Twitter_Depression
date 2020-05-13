@@ -7,6 +7,7 @@ library(lme4)
 library(stringr)
 library(roll)
 library(zoo)
+library(patchwork)
 set.seed(2020)
 #Participants are included if they have at least 5 days with Tweets and at least 
 #50% of the tweets from their account are in English 
@@ -21,13 +22,34 @@ set.seed(2020)
 
 #remove outliers 
 remove_outliers <- function(x, na.rm = TRUE, ...) {
-  s <- sd(x)
-  m <- mean(x)
+  s <- sd(na.omit(x))
+  m <- mean(na.omit(x))
   y <- x
   y[x > (m + 3*s)] <- NA
   y[x < (m - 3*s)] <- NA
   y
 }
+
+
+gaussian_detrend <- function(df,bandwidth_ksmooth,var) {
+  sd.detrend <- list()
+  sd.detrend[[1]] <- mean(na.omit(df$WC))
+  for(i in 3:dim(df)[2]){
+  var_smooth <- suppressWarnings(ksmooth(df$Day,na.approx(df[,i]) ,
+                                         n.points = length(df$Day), 
+                                         kernel =  "normal", bandwidth = bandwidth_ksmooth))
+  
+  #remove any trends by subtracting the smoothed series from the original 
+  resid_series <- suppressWarnings((df[,i]) - var_smooth$y)
+  print(mean(na.omit(resid_series)))
+  #sd_resid <- sd(na.omit(resid_series))
+  sd_resid <- sd(na.omit(df[,i]))
+  sd.detrend[[i]] <- sd_resid
+  }
+  sd.detrend <- unlist(sd.detrend)
+}
+
+
 # function to apply to all rows
 remove_all_outliers <- function(d){
   d[] <- lapply(d, function(x) if (is.numeric(x))
@@ -38,45 +60,51 @@ remove_all_outliers <- function(d){
 
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
-#rolling window autocorrelation function 
-acf.window <- function(y, n) {
-  N <- length(y)
-  if (n > N) stop("Window too wide.")
-  zero <- 0
-  #
-  # Compute a rolling sum given the fft of its kernel.
-  #
-  sum.window <- function(x, k) Re(fft(fft(x) * k, inverse=TRUE)) / length(x)
-  #
-  # Precompute kernels for summing over windows of length `n` and n-1.
-  #
-  m <- floor((n+1)/2)
-  kernel <-  fft(c(rep(1, m), rep(0, N-n+1), rep(1, n-m-1)))
-  kernel.full <- fft(c(rep(1, m), rep(0, N-n), rep(1, n-m)))
-  #
-  # Lag the original data.
-  #
-  y.lag <- c(y[-1], zero)           # Lagged values
-  y.trunc <- c( y[-N], zero)        # Truncated at the end
-  #
-  # Compute the needed rolling sums.
-  #
-  y.sum <- sum.window(y, kernel)
-  y.lag.sum <- c(y.sum[-1], zero)
-  y.trunc.sum <- c(y.sum[-N], zero)
-  y.prod <- sum.window(y.lag * y.trunc, kernel)
-  y.mean <- sum.window(y, kernel.full) / n
-  y.2 <- sum.window(y^2, kernel.full)
-  
-  a <- y.prod - y.mean*(y.lag.sum+y.trunc.sum) + y.mean^2*(n-1)
-  a <- a / (y.2 - n * y.mean^2)
-  
-  return(a[m:(N-n+m)])
-}
 acf.reference <- function(y, n, lag=1) {
   require(zoo)
   rollapply(y, width = n, FUN=function(x) acf(x, plot = FALSE, lag.max = lag)$acf[1+lag])
 }
+
+
+number_ticks <- function(n) {function(limits) pretty(limits, n)}
+
+raincloud_theme = theme(
+  panel.background = element_blank(),
+  text = element_text(size = 10),
+  axis.title.x = element_blank(),
+  axis.title.y = element_text(size = 16),
+  axis.text = element_text(size = 14),
+  axis.text.x = element_text(vjust = 0.5,colour = "black"),
+  axis.text.y = element_text(colour = "black"),
+  legend.title=element_text(size=16),
+  legend.text=element_text(size=16),
+  legend.position = "right",
+  plot.title = element_text(lineheight=.8, face="bold", size = 16),
+  panel.border = element_blank(),
+  panel.grid.minor = element_blank(),
+  panel.grid.major = element_blank(),
+  axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+  axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
+
+
+coefplot_theme = theme(
+  panel.background = element_blank(),
+  text = element_text(size = 10),
+  axis.title.x = element_text(size = 16),
+  axis.title.y = element_text(size = 16),
+  axis.text = element_text(size = 14),
+  axis.text.x = element_text(vjust = 0.5,colour = "black"),
+  axis.text.y = element_text(colour = "black"),
+  legend.title=element_text(size=16),
+  legend.text=element_text(size=16),
+  legend.position = "right",
+  plot.title = element_text(lineheight=.8, face="bold", size = 16),
+  panel.border = element_blank(),
+  panel.grid.minor = element_blank(),
+  panel.grid.major = element_blank(),
+  axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+  axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
+
 #############################################################
 #############################################################
 setwd('D:/Twitter_Depression_Kelley/')
@@ -92,11 +120,8 @@ colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
 participants <- read.csv('Data/Participant_Data/FYP_Twitter_Participants.csv')
 
 #set values for autocorrelation analysis 
-rolling_window = 30 #length of rolling window 
+rolling_window = 0 #length of rolling window 
 bandwidth_ksmooth <- 7 #bandwidth is for smoothing and removing high-frequency trends 
-var <- 'i' #which sentiment to use 
-
-
 
 #############################################################
 #############################################################
@@ -121,121 +146,124 @@ participants$SDS_Total <- rowSums(participants %>% select(colnames(participants)
 
 #sentiments from participants who passed attention check or are from free recruitment 
 FYP_df <- FYP_df[which(FYP_df$Id %in% participants$Id),]
-
-#remove outliers in any of the sentiments (LIWC and ANEW)
 FYP_df[,6:93]= remove_all_outliers(FYP_df[6:93])
+#remove outliers in any of the sentiments (LIWC and ANEW)
 FYP_df$Depressed_today <- as.factor(FYP_df$Depressed_today)
 
-#############################################################
-#############################################################
-
-dep_ids <- list()
-for(i in 1:length(unique(FYP_df$Id))) {
-  print(i)
-  if( sd(as.numeric(as.character(FYP_df[which(FYP_df$Id == unique(FYP_df$Id)[i]),94]))) != 0) {
-    dep_ids[[i]] <- as.character(unique(FYP_df$Id)[i])
-  }
-
-}
-
-dep_ids <- unlist(dep_ids)
-nodep_ids <- (participants %>% filter(Dep_ep_pastyear== 0) %>% select(Id))
-
-participants <- participants %>% filter(Id %in% dep_ids | Id %in% nodep_ids$Id)
-
-FYP_df <- FYP_df[which(FYP_df$Id %in% participants$Id),]
-
 #############################################################################
 #############################################################################
-
-#VZxIkJN3J3lmNR3F- good example of increase in autocorrelation prior to the onset of a depressive episode 
 #list of unique participant ids 
 
 id_list <- unique(FYP_df$Id)
 
+sentiments.detrend <- list()
 
-kc_trend <- list(); handle_list <- list(); mean_autocor <- list(); mean_sd <- list(); mean_sentiment <-list()
-mean_wc <- list()
-missing_vals <- list()
-for(handle in id_list) {
+for(id in id_list) {
   
-  print(handle)
+  print(id)
   
-  ex1 <- FYP_df %>% filter(Id == handle)
-  #ex1 <- FYP_df_subset %>% filter(Id == handle)
-  ex1$Depressed_today <- as.numeric(as.character(ex1$Depressed_today))
-  mv <- length(which(ex1$Date == ''))/length(ex1$Day) #percentage of values that will need to be interpolated
+  ex1 <- FYP_df %>% filter(Id == id) %>% select(Day,WC,negemo,posemo,i,we,shehe,they,you,swear,article,negate)
+    if(length(ex1$Day) >= rolling_window) {
 
-  if(length(ex1$Day) >= 2*rolling_window) {
-    missing_vals <- c(missing_vals,mv)
-    #Gaussian Kernel smoothing with a 7 day window 
-    var_smooth <- suppressWarnings(ksmooth(ex1$Day,na.approx(ex1[,which(colnames(ex1) == var)]) ,n.points = length(ex1$Day), kernel =  "normal", bandwidth = bandwidth_ksmooth))
-    
-    #remove any trends by subtracting the smoothed series from the original 
-    resid_series <- suppressWarnings(na.approx(ex1[,which(colnames(ex1) == var)]) - var_smooth$y)
-    resid_series2 <- na.omit(ex1[,which(colnames(ex1) == var)])
-    
-    #rolling autocorrelation series using a pre-defined rolling window  
-    autocor_resid <- acf.reference(resid_series,rolling_window,1)
-    #autocor_resid <- acf.reference(resid_series2,length(resid_series2),1)
-
-    sd_resid <- sd(na.omit(resid_series))
-    
-    wc.mean <- mean(na.omit(ex1$WC))
-    auto.mean <- mean(autocor_resid)
-    sd.mean <- mean(sd_resid)
-    sentiment_mean <- mean(na.omit(ex1[,which(colnames(ex1) == var)]))
-    
-    mean_sentiment <- c(mean_sentiment,sentiment_mean)
-    mean_autocor <- c(mean_autocor,auto.mean)
-    mean_sd <- c(mean_sd,sd.mean)
-    mean_wc <- c(mean_wc,wc.mean)
-    handle_list <- c(handle_list,handle)
+    sentiments.detrend[[id]] <- gaussian_detrend(ex1,bandwidth_ksmooth = 7)
     
   }
   
 }
 
-mean_autocor <- unlist(mean_autocor)
-mean_sd <- unlist(mean_sd)
-handle_list <- unlist(handle_list)
-mean_sentiment <- unlist(mean_sentiment)
-missing_vals <- unlist(missing_vals)
-mean_wc <- unlist(mean_wc)
+sentiments.detrend <- as.data.frame(do.call(rbind, sentiments.detrend))
+colnames(sentiments.detrend) <- c("WC","negemo","posemo","i",
+                                  "we","shehe","they","you","swear",
+                                  "article","negate")
+sentiments.detrend$Id <- rownames(sentiments.detrend)
 
-df <- as.data.frame(cbind(handle_list,mean_autocor,mean_sd,mean_sentiment,mean_wc,missing_vals))
-colnames(df) <- c("Id","Autocor","SD","Sentiment","WC","Percent_Missing")
-df$Autocor <- as.numeric(as.character(df$Autocor))
-df$SD <- as.numeric(as.character(df$SD))
-df$Sentiment <- as.numeric(as.character(df$Sentiment))
-df$WC <- as.numeric(as.character(df$WC))
-df$Percent_Missing <- as.numeric(as.character(df$Percent_Missing))
-df$SDS_Total <- participants$SDS_Total[which(participants$Id %in% df$Id)]
-df$Dep_Episode <- participants$Dep_ep_pastyear[which(participants$Id %in% df$Id)]
-df$Dep_Episode <- as.factor(df$Dep_Episode)
+sentiments.detrend$SDS_Total <- participants$SDS_Total[which(participants$Id %in% sentiments.detrend$Id)]
+sentiments.detrend$Dep_Episode <- participants$Dep_ep_pastyear[which(participants$Id %in% sentiments.detrend$Id)]
 
-###############################################################################
-df <- df %>% filter(Percent_Missing < 0.2)
-###############################################################################
+########################################################################################
+#scatterplots
 
-summary(glm(Dep_Episode ~ SD, family = binomial(link="logit"),data = df))
-summary(glm(Dep_Episode ~ SD + WC, family = binomial(link="logit"),data = df))
+g1 <- ggplot(sentiments.detrend,aes(y = negemo,x=SDS_Total)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 2,se=FALSE) + ylab(expression("negemo ( " * sigma ~ ")"))
 
 
+g2 <- ggplot(sentiments.detrend,aes(y = posemo,x=SDS_Total)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 2,se=FALSE) + ylab(expression("posemo ( " * sigma ~ ")"))
+
+g3 <- ggplot(sentiments.detrend,aes(y = i,x=SDS_Total)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 2,se=FALSE)+ ylab(expression("i ( " * sigma ~ ")"))
 
 
+g4 <- ggplot(sentiments.detrend,aes(y = we,x=SDS_Total)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 2,se=FALSE)+ ylab(expression("we ( " * sigma ~ ")"))
 
-summary(glm(Dep_Episode ~ SDS_Total, family = binomial(link="logit"),data = df))
-summary(glm(Dep_Episode ~ Autocor, family = binomial(link="logit"),data = df))
+g5 <- ggplot(sentiments.detrend,aes(y = you,x=SDS_Total)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 2,se=FALSE)+ ylab(expression("you ( " * sigma ~ ")"))
 
-summary(glm(Dep_Episode ~ Percent_Missing, family = binomial(link="logit"),data = df))
 
-summary(glm(Sentiment ~ SDS_Total, family = gaussian(),data = df))
-summary(glm(SD ~ SDS_Total, family = gaussian(),data = df))
+g6 <- ggplot(sentiments.detrend,aes(y = shehe,x=SDS_Total)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 2,se=FALSE)+ ylab(expression("shehe ( " * sigma ~ ")"))
 
-ggplot(data = df, aes(x = Percent_Missing,y=Autocor)) + geom_point() + theme_bw()
-ggplot(data = df, aes(x = SDS_Total,y=Autocor)) + geom_point() + theme_bw()
+g7 <- ggplot(sentiments.detrend,aes(y = they,x=SDS_Total)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 2,se=FALSE) + ylab(expression("they ( " * sigma ~ ")"))
 
-ggplot(data = df, aes(x = Dep_Episode,y=Autocor)) + geom_boxplot() + theme_bw()
-ggplot(data = df, aes(x = Dep_Episode,y=SD)) + geom_boxplot() + theme_bw()
-ggplot(data = df, aes(x = Dep_Episode,y=Percent_Missing)) + geom_boxplot() + theme_bw()
+g8 <- ggplot(sentiments.detrend,aes(y = swear,x=SDS_Total)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 2,se=FALSE) + ylab(expression("swear ( " * sigma ~ ")"))
+
+g9 <- ggplot(sentiments.detrend,aes(y = negate,x=SDS_Total)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 2,se=FALSE) + ylab(expression("negate ( " * sigma ~ ")"))
+
+g10 <- ggplot(sentiments.detrend,aes(y = article,x=SDS_Total)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 2,se=FALSE) + ylab(expression("article ( " *sigma ~")"))
+
+combined <- (g2 + g10 + g4 + g6 + g9 +  plot_layout(ncol = 5)) / (g7 + g5 + g1 + g3 + g8  + plot_layout(ncol = 5))  +
+  plot_annotation(caption = "Zung Depression Scale",tag_levels = 'A',  theme = theme(plot.caption = element_text(size = 18,hjust = 0.5)))
+
+combined <- combined & ylim(0,4) & scale_x_continuous(breaks=number_ticks(4))
+
+########################################################################################
+glm_estimates <- as.data.frame(matrix(nrow = 10,ncol = 3))
+colnames(glm_estimates) <- c("Sentiment","Estimate","SE")
+glm_estimates$Sentiment <- c("negemo","posemo","i","we","shehe","they","you","swear",
+                             "article","negate")
+
+glm_estimates[1,2] <- summary(glm(negemo ~ SDS_Total,data = sentiments.detrend))$coefficients[2,1]
+glm_estimates[1,3] <- summary(glm(negemo ~ SDS_Total,data = sentiments.detrend))$coefficients[2,2]*1.96
+
+glm_estimates[2,2] <- summary(glm(posemo ~ SDS_Total,data = sentiments.detrend))$coefficients[2,1]
+glm_estimates[2,3] <- summary(glm(posemo ~ SDS_Total,data = sentiments.detrend))$coefficients[2,2]*1.96
+
+glm_estimates[3,2] <- summary(glm(i ~ SDS_Total,data = sentiments.detrend))$coefficients[2,1]
+glm_estimates[3,3] <- summary(glm(i ~ SDS_Total,data = sentiments.detrend))$coefficients[2,2]*1.96
+
+glm_estimates[4,2] <- summary(glm(we ~ SDS_Total,data = sentiments.detrend))$coefficients[2,1]
+glm_estimates[4,3] <- summary(glm(we ~ SDS_Total,data = sentiments.detrend))$coefficients[2,2]*1.96
+
+glm_estimates[5,2] <- summary(glm(shehe ~ SDS_Total,data = sentiments.detrend))$coefficients[2,1]
+glm_estimates[5,3] <- summary(glm(shehe ~ SDS_Total,data = sentiments.detrend))$coefficients[2,2]*1.96
+
+glm_estimates[6,2] <- summary(glm(they ~ SDS_Total,data = sentiments.detrend))$coefficients[2,1]
+glm_estimates[6,3] <- summary(glm(they ~ SDS_Total,data = sentiments.detrend))$coefficients[2,2]*1.96
+
+glm_estimates[7,2] <- summary(glm(you ~ SDS_Total,data = sentiments.detrend))$coefficients[2,1]
+glm_estimates[7,3] <- summary(glm(you ~ SDS_Total,data = sentiments.detrend))$coefficients[2,2]*1.96
+
+glm_estimates[8,2] <- summary(glm(swear ~ SDS_Total,data = sentiments.detrend))$coefficients[2,1]
+glm_estimates[8,3] <- summary(glm(swear ~ SDS_Total,data = sentiments.detrend))$coefficients[2,2]*1.96
+
+glm_estimates[9,2] <- summary(glm(article ~ SDS_Total,data = sentiments.detrend))$coefficients[2,1]
+glm_estimates[9,3] <- summary(glm(article ~ SDS_Total,data = sentiments.detrend))$coefficients[2,2]*1.96
+
+glm_estimates[10,2] <- summary(glm(negate ~ SDS_Total,data = sentiments.detrend))$coefficients[2,1]
+glm_estimates[10,3] <- summary(glm(negate ~ SDS_Total,data = sentiments.detrend))$coefficients[2,2]*1.96
+
+mean.est <- ggplot(glm_estimates, aes(x= reorder(Sentiment, -Estimate), y=Estimate)) + 
+  geom_point() +coefplot_theme + 
+  geom_errorbar(aes(ymin=Estimate-SE, ymax=Estimate+SE), width=.2,position=position_dodge(0.05)) +
+  xlab("LIWC Sentiment\n") + geom_hline(yintercept=0, linetype="dashed", color = "black") +
+  ylab("\n Regression Coefficient (95% CI)") +  coord_flip()
+
+
+(combined | mean.est) +  plot_layout(widths = c(2, 1)) + 
+  plot_annotation(caption = "Zung Depression Scale",tag_levels = 'A',
+                  theme = theme(plot.caption = element_text(size = 18,hjust = 0.3)))
