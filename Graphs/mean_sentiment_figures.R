@@ -74,9 +74,9 @@ coefplot_theme = theme(
 #############################################################
 #sentiment analysis based on tweets 
 
-FYP_df <- read.csv('Data/Sentiments/all_tweets/VADER_ANEW_LIWC_complete_FYPSG.csv')
+FYP_df <- read.csv('Data/Sentiments/all_tweets/VADER_ANEW_LIWC_complete.csv')
 colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
-participants <- read.csv('Data/Participant_Data/FYP.SG_Twitter_Participants.csv')
+participants <- read.csv('Data/Participant_Data/Twitter_Participants.csv')
 
 
 #average sentiments over the past year 

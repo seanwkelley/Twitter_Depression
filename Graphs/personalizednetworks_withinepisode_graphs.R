@@ -127,7 +127,7 @@ raincloud_theme2 = theme(
   axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
 ##################################################################################################
 #Clickworker and FYP data only 
-dc_net <- read.csv('Data/Results/all_tweets/Node.Strength_dechoudhury_withinepisode.FYPSG.csv')
+dc_net <- read.csv('Data/Results/all_tweets/Node.Strength_dechoudhury_withinepisode.csv')
 dc_net <- dc_net[,-1]
 dc_net[,1:11] <- remove_all_outliers(dc_net[1:11])
 
