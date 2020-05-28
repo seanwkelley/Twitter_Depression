@@ -198,8 +198,8 @@ g9 <- ggplot(sentiments.detrend,aes(y = negate,x=Depression_zscore)) + geom_poin
 g10 <- ggplot(sentiments.detrend,aes(y = article,x=Depression_zscore)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
   geom_smooth(method = "lm",size = 2,se=FALSE) + ylab(expression("article ( " *sigma ~")"))
 
-combined <- (g2 + g10 + g4 + g6 + g9 +  plot_layout(ncol = 5)) / (g7 + g5 + g1 + g3 + g8  + plot_layout(ncol = 5))  +
-  plot_annotation(caption = "Zung Depression Scale",tag_levels = 'A',  theme = theme(plot.caption = element_text(size = 18,hjust = 0.5)))
+combined <- (g10 + g2 + g4 + g6 + g9 +  plot_layout(ncol = 5)) / (g7 + g5 + g1 + g3 + g8  + plot_layout(ncol = 5))  +
+  plot_annotation(caption = "Depression Z-Score",tag_levels = 'A',  theme = theme(plot.caption = element_text(size = 18,hjust = 0.5)))
 
 combined <- combined & ylim(0,4) & scale_x_continuous(breaks=number_ticks(4))
 
@@ -247,5 +247,5 @@ mean.est <- ggplot(glm_estimates, aes(x= reorder(Sentiment, -Estimate), y=Estima
 
 
 (combined | mean.est) +  plot_layout(widths = c(2, 1)) + 
-  plot_annotation(caption = "Zung Depression Scale",tag_levels = 'A',
+  plot_annotation(caption = "Depression Z-Score",tag_levels = 'A',
                   theme = theme(plot.caption = element_text(size = 18,hjust = 0.3)))
