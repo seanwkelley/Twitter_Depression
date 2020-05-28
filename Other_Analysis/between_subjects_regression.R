@@ -39,7 +39,7 @@ remove_all_outliers <- function(d){
 FYP_df <- read.csv('Data/Sentiments/all_tweets/VADER_ANEW_LIWC_complete.csv')
 colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
 
-participants <- read.csv('Data/Participant_Data/FYP_Twitter_Participants.csv')
+participants <- read.csv('Data/Participant_Data/Twitter_Participants.csv')
 participants <- participants[which(is.na(participants$OCI_6) | participants$OCI_6 == 1),]
 
 #average sentiments over the past year 
