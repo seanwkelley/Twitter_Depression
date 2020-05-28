@@ -36,14 +36,14 @@ file.close()
 # #####################################
 # #Encrypt the Participants.csv
 # #Open the file to encrypt
-with open('FYP.SG_Twitter_Participants2.csv', 'rb') as f:
+with open('Twitter_Participants.csv', 'rb') as f:
     data = f.read()
 
 fernet = Fernet(key)
 encrypted = fernet.encrypt(data)
 
 # Write the encrypted file
-with open('FYP.SG_Twitter_Participants2.csv.encrypted', 'wb') as f:
+with open('Twitter_Participants.csv.encrypted', 'wb') as f:
     f.write(encrypted)
 
 # file = open('key.key', 'rb')

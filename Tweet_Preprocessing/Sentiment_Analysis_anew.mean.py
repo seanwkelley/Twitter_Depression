@@ -395,7 +395,7 @@ file = open('Data/Participant_Data/key.key', 'rb')
 key = file.read()
 file.close()
 
-with open('Data/Participant_Data/FYP_Twitter_Participants.csv.encrypted', 'rb') as f:
+with open('Data/Participant_Data/Twitter_Participants.csv.encrypted', 'rb') as f:
     data = f.read()
 
 #de-encrypt the Participants.csv data file 

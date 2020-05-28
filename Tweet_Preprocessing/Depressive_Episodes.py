@@ -102,7 +102,7 @@ file.close()
 
 
 #results of sentiment analysis 
-VADER_ANEW_LIWC = pd.read_csv(path + 'Data/Sentiments/' + tweet_type + '/' + 'VADER_ANEW_LIWC_complete_dep_FYPSG.csv',encoding="utf-8")
+VADER_ANEW_LIWC = pd.read_csv(path + 'Data/Sentiments/' + tweet_type + '/' + 'VADER_ANEW_LIWC_complete_dep.csv',encoding="utf-8")
 VADER_ANEW_LIWC = VADER_ANEW_LIWC[~VADER_ANEW_LIWC['Date'].isnull()]
 
 
@@ -110,7 +110,7 @@ id_unique = list(VADER_ANEW_LIWC['Twitter_Handle'].unique())
 
 
 #participants data file 
-with open('Data/Participant_Data/FYP.SG_Twitter_Participants.csv.encrypted', 'rb') as f:
+with open('Data/Participant_Data/Twitter_Participants.csv.encrypted', 'rb') as f:
     data = f.read()
 
 #de-encrypt the Participants.csv data file 

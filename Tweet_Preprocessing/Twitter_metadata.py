@@ -137,7 +137,7 @@ def find_timezone(handle):
 ###########################################################################################
 os.chdir(path)
 
-Participant_info = Dates = pd.read_csv('Data/Participant_Data/FYP.SG_Twitter_Participants.csv')
+Participant_info = Dates = pd.read_csv('Data/Participant_Data/Twitter_Participants.csv')
 
 #get twitter handles from file names 
 file_names = list(Participant_info['Twitter_Handle'])

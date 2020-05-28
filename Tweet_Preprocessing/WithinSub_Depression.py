@@ -103,7 +103,7 @@ key = file.read()
 file.close()
 
 #participants data file, FYP, CW and SG
-with open('Data/Participant_Data/FYP.SG_Twitter_Participants.csv.encrypted', 'rb') as f:
+with open('Data/Participant_Data/Twitter_Participants.csv.encrypted', 'rb') as f:
     data = f.read()
 
 #de-encrypt the Participants.csv data file 
@@ -121,7 +121,7 @@ file_names = list(Participant_info['Twitter_Handle'])
 id_dict = dict(zip(Participant_info['Twitter_Handle'],Participant_info['Id']))
 
 #results of sentiment analysis 
-VADER_ANEW_LIWC = pd.read_csv(path + 'Data/Sentiments/' + tweet_type + '/' + 'VADER_ANEW_LIWC_complete_dep_FYPSG.csv',encoding="utf-8")
+VADER_ANEW_LIWC = pd.read_csv(path + 'Data/Sentiments/' + tweet_type + '/' + 'VADER_ANEW_LIWC_complete_dep.csv',encoding="utf-8")
 
 print(type(VADER_ANEW_LIWC))
 
@@ -290,5 +290,4 @@ for i in range(0,len(sentiments_dep)):
     sentiments_dep[i] = sentiments_dep[i][sentiments_dep[i].columns.drop(list(sentiments_dep[i].filter(regex='Period_')))]
 
 sentiments_dep = pd.concat(sentiments_dep)
-#sentiments_dep.to_csv('Data/Sentiments/'+ tweet_type + '/VADER_ANEW_LIWC_complete_dep.csv',index = False)
-sentiments_dep.to_csv('Data/Sentiments/'+ tweet_type + '/VADER_ANEW_LIWC_complete_dep_FYPSG_ct60.csv',index = False)
+sentiments_dep.to_csv('Data/Sentiments/'+ tweet_type + '/VADER_ANEW_LIWC_complete_dep.csv',index = False)
