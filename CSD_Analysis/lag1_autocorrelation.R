@@ -93,7 +93,7 @@ FYP_df <- read.csv(path,stringsAsFactors = FALSE)
 colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
 
 episode = read.csv(path2,stringsAsFactors = FALSE)
-participants <- read.csv('Data/Participant_Data/FYP_Twitter_Participants.csv')
+participants <- read.csv('Data/Participant_Data/Twitter_Participants.csv')
 
 #set values for autocorrelation analysis 
 rolling_window = 30 #length of rolling window 
@@ -110,7 +110,6 @@ series_type <- 'ct_partial' #set to either 'ct_complete' or 'ct_partial'
 
 #keep participants from free recruitment (OCI_6 coded as NA) and those who successfully completed the 
 #attention check
-participants <- participants[which(is.na(participants$OCI_6) | participants$OCI_6 == 1),]
 
 #sentiments from participants who passed attention check or are from free recruitment 
 FYP_df <- FYP_df[which(FYP_df$Id %in% participants$Id),]
