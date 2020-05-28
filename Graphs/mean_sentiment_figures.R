@@ -127,8 +127,8 @@ g9 <- ggplot(FYP,aes(y = negate,x=Depression_zscore)) + geom_point() +  xlab("SD
 g10 <- ggplot(FYP,aes(y = article,x=Depression_zscore)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
   geom_smooth(method = "lm",size = 2,se=FALSE) + ylab(expression("article ( " *mu ~")"))
 
-combined <- (g4 + g10 + g2 + g6 + g7 +  plot_layout(ncol = 5)) / (g9 + g8 + g5 + g3 + g1  + plot_layout(ncol = 5))  +
-  plot_annotation(caption = "Zung Depression Scale",tag_levels = 'A',  theme = theme(plot.caption = element_text(size = 18,hjust = 0.5)))
+combined <- (g4 + g2 + g10 + g6 + g7 +  plot_layout(ncol = 5)) / (g9 + g8 + g5 + g3 + g1  + plot_layout(ncol = 5))  +
+  plot_annotation(caption = "Depression Z-Score",tag_levels = 'A',  theme = theme(plot.caption = element_text(size = 18,hjust = 0.5)))
 
 combined <- combined & ylim(-2,4) & scale_x_continuous(breaks=number_ticks(4))
 
@@ -176,5 +176,5 @@ mean.est <- ggplot(glm_estimates, aes(x= reorder(Sentiment, -Estimate), y=Estima
 
 
 (combined | mean.est) +  plot_layout(widths = c(2, 1)) + 
-  plot_annotation(caption = "Zung Depression Scale",tag_levels = 'A',
+  plot_annotation(caption = "Depression Z-Score",tag_levels = 'A',
                   theme = theme(plot.caption = element_text(size = 18,hjust = 0.3)))
