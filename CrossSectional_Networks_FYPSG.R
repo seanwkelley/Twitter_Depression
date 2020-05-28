@@ -92,7 +92,6 @@ remove_all_outliers <- function(d){
   d
 }
 
-<<<<<<< HEAD
 
 raincloud_theme = theme(
   panel.background = element_blank(),
@@ -113,8 +112,6 @@ raincloud_theme = theme(
   axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
 
 
-=======
->>>>>>> fdac6c6260f0e48e5089b71c94be8abcaef54be7
 raincloud_theme2 = theme(
   panel.background = element_blank(),
   legend.position = "none",
@@ -151,18 +148,10 @@ raincloud_theme3 = theme(
 ##########################################################################
 #sentiment analysis based on tweets 
 
-<<<<<<< HEAD
 FYP_df <- read.csv('Data/Sentiments/all_tweets/VADER_ANEW_LIWC_complete_dep_FYPSG.csv')
 colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
 
 participants <- read.csv('Data/Participant_Data/FYP.SG_Twitter_Participants.csv')
-=======
-FYP_df <- read.csv('Data/Sentiments/all_tweets/VADER_ANEW_LIWC_complete.csv')
-colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
-
-participants <- read.csv('Data/Participant_Data/FYP_Twitter_Participants.csv')
-participants <- participants[which(is.na(participants$OCI_6) | participants$OCI_6 == 1),]
->>>>>>> fdac6c6260f0e48e5089b71c94be8abcaef54be7
 
 #average sentiments over the past year 
 FYP_df_mean <- aggregate(. ~ Id , data = FYP_df, FUN = "mean")
@@ -177,22 +166,6 @@ FYP_df_mean$pro3 <- (FYP_df_mean$shehe + FYP_df_mean$they)/2
 #merge sentiments and participants data 
 FYP <- merge(participants,FYP_df_mean,by='Id')
 
-<<<<<<< HEAD
-=======
-#reverse scored items: 2, 5, 6, 11, 12, 14, 16, 17, 18, 20  
-FYP$SDS_2 <- 5 - FYP$SDS_2
-FYP$SDS_5 <- 5 - FYP$SDS_5
-FYP$SDS_6 <- 5 - FYP$SDS_6
-FYP$SDS_11 <- 5 - FYP$SDS_11
-FYP$SDS_12 <- 5 - FYP$SDS_12
-FYP$SDS_14 <- 5 - FYP$SDS_14
-FYP$SDS_16 <- 5 - FYP$SDS_16
-FYP$SDS_17 <- 5 - FYP$SDS_17
-FYP$SDS_18 <- 5 - FYP$SDS_18
-FYP$SDS_20 <- 5 - FYP$SDS_20
-
-FYP$SDS_Total <- rowSums(FYP %>% select(colnames(FYP)[grepl("SDS",colnames(FYP))]))
->>>>>>> fdac6c6260f0e48e5089b71c94be8abcaef54be7
 FYP$Dep_ep_pastyear <- as.factor(FYP$Dep_ep_pastyear)
 FYP$Depression_Physician <- as.factor(FYP$Depression_Physician)
 
@@ -245,7 +218,6 @@ g5 <- plot(Results1, "strength", plot = "difference",cex.axis = 1.5)
 ((g4) | ((g1 + g2 + g3)/g5)) 
 
 ########################################################################
-<<<<<<< HEAD
 h1 <- ggplot(FYP,aes(x=Depression_zscore)) + geom_histogram(bins=25,binwidth=0.25,color="black",fill ="white") +
   raincloud_theme2 + xlab("\nDepression Z-Score") + ylab("Count\n")
 
@@ -254,16 +226,6 @@ h2 <- ggplot(data = FYP, aes(y = Depression_zscore, x = as.factor(Dep_ep_pastyea
                              fill = as.factor(Dep_ep_pastyear))) +
   geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .8) +
   geom_point(aes(y = Depression_zscore, color = as.factor(Dep_ep_pastyear)),
-=======
-h1 <- ggplot(FYP,aes(x=SDS_Total)) + geom_histogram(bins=25,binwidth=1,color="black",fill ="white") +
-  raincloud_theme2 + xlab("\nZung Depression Scale") + ylab("Count\n")
-
-
-h2 <- ggplot(data = FYP, aes(y = SDS_Total, x = as.factor(Dep_ep_pastyear), 
-                          fill = as.factor(Dep_ep_pastyear))) +
-  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .8) +
-  geom_point(aes(y = SDS_Total, color = as.factor(Dep_ep_pastyear)),
->>>>>>> fdac6c6260f0e48e5089b71c94be8abcaef54be7
              position = position_jitter(width = .15), size = 1.25, alpha = 0.8) +
   geom_boxplot(width = .2, guides = FALSE, outlier.shape = NA, alpha = 0.5) +
   expand_limits(x = 1) +
@@ -272,11 +234,7 @@ h2 <- ggplot(data = FYP, aes(y = SDS_Total, x = as.factor(Dep_ep_pastyear),
   scale_color_brewer(palette = "Dark2") +
   scale_fill_brewer(palette = "Dark2") +
   theme_bw() +
-<<<<<<< HEAD
   raincloud_theme + xlab("Depressed Period in Past Year") + ylab("Depression Z-Score\n") +
-=======
-  raincloud_theme + xlab("Depressed Period in Past Year") + ylab("Zung Depression Scale\n") +
->>>>>>> fdac6c6260f0e48e5089b71c94be8abcaef54be7
   scale_x_discrete(labels=c("0" = "No Depressive Episode", "1" = "Depressive Episode"))
 
 h1+ h2 
@@ -293,8 +251,4 @@ kable(dechoud_table, digits = 2, format = "html", row.names = TRUE,align = "c") 
                 full_width = T,
                 font_size = 18,
                 position = "center")%>% column_spec(1, bold = T) %>% column_spec(2, width =  "2.5cm") %>%
-<<<<<<< HEAD
   cat(., file = "df.html")
-=======
-                cat(., file = "df.html")
->>>>>>> fdac6c6260f0e48e5089b71c94be8abcaef54be7
