@@ -102,13 +102,15 @@ file.close()
 
 
 #results of sentiment analysis 
-VADER_ANEW_LIWC = pd.read_csv(path + 'Data/Sentiments/' + tweet_type + '/' + 'VADER_ANEW_LIWC_complete.csv',encoding="utf-8")
+VADER_ANEW_LIWC = pd.read_csv(path + 'Data/Sentiments/' + tweet_type + '/' + 'VADER_ANEW_LIWC_complete_dep_FYPSG.csv',encoding="utf-8")
+VADER_ANEW_LIWC = VADER_ANEW_LIWC[~VADER_ANEW_LIWC['Date'].isnull()]
+
 
 id_unique = list(VADER_ANEW_LIWC['Twitter_Handle'].unique())
 
 
 #participants data file 
-with open('Data/Participant_Data/FYP_Twitter_Participants.csv.encrypted', 'rb') as f:
+with open('Data/Participant_Data/FYP.SG_Twitter_Participants.csv.encrypted', 'rb') as f:
     data = f.read()
 
 #de-encrypt the Participants.csv data file 
@@ -122,7 +124,7 @@ data = StringIO(participants_encrypted)
 Participant_info =pd.read_csv(data)
 
 #keep participants from free recruitment and those who successfully completed the attention check 
-Participant_info = Participant_info[(Participant_info['OCI_6'].isnull()) | (Participant_info['OCI_6'] == 1)]
+#Participant_info = Participant_info[(Participant_info['OCI_6'].isnull()) | (Participant_info['OCI_6'] == 1)]
 
 #Remove participants who don't have enough Twitter data (< 5 days with Tweets or <50% of Tweets in English)
 Participant_info = Participant_info[Participant_info['Id'].isin(id_unique)]
@@ -131,8 +133,7 @@ Participant_info = Participant_info[Participant_info['Id'].isin(id_unique)]
 file_names = list(Participant_info['Twitter_Handle'])
 id_dict = dict(zip(Participant_info['Twitter_Handle'],Participant_info['Id']))
 
-#results of sentiment analysis 
-VADER_ANEW_LIWC = pd.read_csv(path + 'Data/Sentiments/' + tweet_type + '/' + 'VADER_ANEW_LIWC_complete.csv',encoding="utf-8")
+
 display_time = 3600*24*1
 
 Participant_info['missing_days'] = ""
@@ -254,7 +255,7 @@ for name in file_names:
     
     for start in start:
         #number of days in the 21/44 day period prior to the onset of a depressive episode (14 + rolling window)
-        missing_days.append(len(list(x for x in sentiments_handle['Day'] if (start-14) <= x <= (start - 1))))
+        missing_days.append(len(list(x for x in sentiments_handle['Day'] if (start-60) <= x <= (start - 1))))
         participant_id = str(sentiments_handle['Twitter_Handle'].unique())
         participant_id = participant_id.split("'")[1]
         unique_ids.append(participant_id)
@@ -299,5 +300,5 @@ CSD['Between_Episodes'] = pd.DataFrame(between_episode_period)
 CSD['Start'] = pd.DataFrame(start_episode)
 CSD['End'] = pd.DataFrame(end_episode)
 
-CSD.to_csv(path + 'Data/Sentiments/' + tweet_type + '/' + 'CSD_Episodes.csv',index = False)
+CSD.to_csv(path + 'Data/Sentiments/' + tweet_type + '/' + 'CSD_Episodes_FYPSG.csv',index = False)
 
