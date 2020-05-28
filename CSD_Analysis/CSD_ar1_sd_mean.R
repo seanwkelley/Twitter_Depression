@@ -117,7 +117,7 @@ path = paste0('Data/Sentiments/',tweet_type,"/VADER_ANEW_LIWC_complete_dep.csv",
 FYP_df <- read.csv(path,stringsAsFactors = FALSE)
 colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
 
-participants <- read.csv('Data/Participant_Data/FYP_Twitter_Participants.csv')
+participants <- read.csv('Data/Participant_Data/Twitter_Participants.csv')
 
 #set values for autocorrelation analysis 
 rolling_window = 0 #length of rolling window 
@@ -128,7 +128,7 @@ bandwidth_ksmooth <- 7 #bandwidth is for smoothing and removing high-frequency t
 
 #keep participants from free recruitment (OCI_6 coded as NA) and those who successfully completed the 
 #attention check
-participants <- participants[which(is.na(participants$OCI_6) | participants$OCI_6 == 1),]
+#participants <- participants[which(is.na(participants$OCI_6) | participants$OCI_6 == 1),]
 
 #reverse scored items: 2, 5, 6, 11, 12, 14, 16, 17, 18, 20  
 participants$SDS_2 <- 5 - participants$SDS_2
