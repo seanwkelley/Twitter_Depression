@@ -55,7 +55,7 @@ weight_WC <- function(d){
 #############################################################
 setwd('D:/Twitter_Depression_Kelley/')
 
-tweet_type = "tweet"
+tweet_type = "all_tweets"
 path = paste0('Data/Sentiments/',tweet_type,"/VADER_ANEW_LIWC_complete_dep.csv",collapse = "")
 path2 = paste0('Data/Sentiments/',tweet_type,"/CSD_Episodes.csv",collapse = "")
 
@@ -66,11 +66,11 @@ colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
 episode = read.csv(path2,stringsAsFactors = FALSE)
 participants <- read.csv('Data/Participant_Data/FYP_Twitter_Participants.csv')
 
-ct <- 14 #interval to compute variance over  
+ct <- 7 #interval to compute variance over  
 rw_adjust <- 2*ct  #minimum duration between depressive episodes to have one period prior to onset and one period away from onset 
-percent_complete = 0.5
+percent_complete = 0
 
-var <- 'negemo' #which sentiment to use 
+var <- 'i' #which sentiment to use 
 
 #############################################################
 #############################################################

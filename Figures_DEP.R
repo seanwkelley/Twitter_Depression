@@ -239,9 +239,13 @@ g2 <- ggplot(data = my_datal, aes(y = NodeStrength, x = NetworkVariable, fill = 
   theme_bw() +
   raincloud_theme2 + xlab("\nNetwork Sentiment") + ylab("Individual Node Strength\n")
 
-g2
 
-combined <- (g2 + g1) & ylim(0,1)
+g3 <- ggplot(dc_net,aes(y = Mean_Centrality,x=SDS_Total)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme2 + 
+  geom_smooth(method = "lm",se=FALSE,size=2) + xlab("\nZung Depression Scale") + 
+  ylab("Global Network Strength\n")
+
+
+combined <- g2 + (g1/g3)  +  plot_layout(widths = c(2, 1))
 
 
 combined

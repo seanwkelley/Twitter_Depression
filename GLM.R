@@ -95,25 +95,7 @@ summary(glm(dominance ~ SDS_Total, family = "gaussian",data = FYP))
 summary(glm(arousal ~ SDS_Total, family = "gaussian",data = FYP))
 
 ##################################################################
-#Elastic Net Regression 
-
-#LIWC features for elasticnet regression 
-
-write.csv(FYP[,291:377], file = "Data/elasticNet/liwc_features.csv",
-          row.names = FALSE)
-
-#SDS total score 
-sds_target <- as.data.frame(FYP[,378])
-colnames(sds_target) <- "SDS_Total"
-
-write.csv(sds_target, file = "Data/elasticNet/sds_target.csv",
-          row.names = FALSE)
-
-sds_individual <- as.data.frame(FYP[,which(colnames(FYP) == "SDS_1"):which(colnames(FYP) == "SDS_20")])
-write.csv(sds_individual, file = "Data/elasticNet/sds_target_individual.csv",
-          row.names = FALSE)
-
-###################################################################################
+##################################################################
 #Figures 
 
 #Histogram of age
@@ -141,3 +123,12 @@ ggplot(FYP, aes(x=Dep_ep_pastyear, y=negemo)) +
     axis.text.x = element_text(size = 14),
     axis.title.y = element_text(size = 16))
 
+
+
+FYP %>% group_by(Dep_ep_pastyear) %>% summarise(mean(tweet)) %>%
+  mutate(
+    t_test = map2('0', '1', ~{t.test(.x$value, .y$value) %>% tidy()}),
+    '0' = map('0', nrow),
+    '1' = map('1', nrow)
+  ) %>% 
+  unnest()

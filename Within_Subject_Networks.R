@@ -97,7 +97,10 @@ for(id in unique(FYP_df$Id)){
   
   print(id)
   
+  #de Choudhury variables 
   en_var <- FYP_df %>% filter(Id == id) %>% select(negemo,posemo,i,we,shehe,they,you,swear,article,negate,Depressed_today)
+  
+  #top 10 sentiments from elastic net 
   #en_var <- FYP_df %>% filter(Id == id) %>% select(WC,bio,WPS,negemo,shehe,adverb,leisure,Exclam,death,Sixltr,Depressed_today)
   
   
@@ -115,10 +118,10 @@ for(id in unique(FYP_df$Id)){
     print(dim(en_var)[1])
     
     try(net_dep <- graphicalVAR(depression_network, nLambda = 10, verbose = TRUE, gamma = 0,scale = TRUE, maxit.in = 100,
-                         maxit.out = 100,deleteMissings = TRUE),silent = TRUE)
+                         maxit.out = 100,deleteMissings = TRUE,centerWithin = TRUE),silent = TRUE)
     
     try(net_nodep <- graphicalVAR(nondepression_network, nLambda = 10, verbose = TRUE, gamma = 0,scale = TRUE, maxit.in = 100,
-                            maxit.out = 100,deleteMissings = TRUE),silent = TRUE)
+                            maxit.out = 100,deleteMissings = TRUE,centerWithin = TRUE),silent = TRUE)
     
     net_dep_PCC <- qgraph(net_dep$PCC);net_nodep_PCC <- qgraph(net_nodep$PCC)
     

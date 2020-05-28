@@ -21,8 +21,8 @@ set.seed(2020)
 
 #remove outliers 
 remove_outliers <- function(x, na.rm = TRUE, ...) {
-  s <- sd(x)
-  m <- mean(x)
+  s <- sd(na.omit(x))
+  m <- mean(na.omit(x))
   y <- x
   y[x > (m + 3*s)] <- NA
   y[x < (m - 3*s)] <- NA
@@ -38,18 +38,18 @@ remove_all_outliers <- function(d){
 
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
-#remove outliers 
-weight_WC <- function(x, na.rm = TRUE, ...) {
-  m <- max(x)
-  m
+gaussian_detrend <- function(df,bandwidth_ksmooth,var) {
+  sd.detrend <- list()
+  for(i in 9:93){
+    var_smooth <- suppressWarnings(ksmooth(df$Day,na.approx(df[,i]) ,
+                                           n.points = length(df$Day), 
+                                           kernel =  "normal", bandwidth = bandwidth_ksmooth))
+    
+    #remove any trends by subtracting the smoothed series from the original 
+    df[,i] <- suppressWarnings((df[,i]) - var_smooth$y)
+  }
+  df
 }
-# function to apply to all rows
-weight_WC <- function(d){
-  d[] <- lapply(d, function(x) if (is.numeric(x))
-    weight_WC(x) else x)
-  d
-}
-
 
 #############################################################
 #############################################################
@@ -69,7 +69,7 @@ participants <- read.csv('Data/Participant_Data/FYP_Twitter_Participants.csv')
 ct <-  14 #interval to compute variance over   
 percent_complete = 0
 
-var <- 'i' #which sentiment to use 
+var <- 'article' #which sentiment to use 
 
 #############################################################
 #############################################################
@@ -105,6 +105,7 @@ FYP_df_subset <- FYP_df_subset[which(FYP_df_subset$Id %in% unique(episode2$Id)),
 #list of unique participant ids 
 
 id_list <- unique(FYP_df_subset$Id)
+full_analysis <- list()
 
 kc_trend <- list(); handle_list <- list()
 mean_sd <- list(); mean_sd_comp <- list()
@@ -115,11 +116,14 @@ episodes <- list()
 
 num_days <- list()
 
+
 for(handle in id_list) {
   print(handle)
   
   ex1 <- FYP_df_subset %>% filter(Id == handle)
-  ex1[,6:93]= remove_all_outliers(ex1[6:93]) #remove outliers within-subject
+  
+  ex1 <- gaussian_detrend(ex1,bandwidth_ksmooth = 7)
+  
   ex1$Depressed_today <- as.numeric(as.character(ex1$Depressed_today))
   ex1 <- ex1[which(!is.na((ex1[,which(colnames(ex1) == var)]))),]
   
@@ -206,6 +210,7 @@ for(handle in id_list) {
         
         
         sd.series <- sd(na.omit(var_series2[(length(var_series2)-(ct-1)):length(var_series2)]))
+        sd.series <- acf(na.omit(var_series2[(length(var_series2)-(ct-1)):length(var_series2)]))$acf[2]
         sentiment.mean <- mean(na.omit(var_series2[(length(var_series2)-(ct-1)):length(var_series2)]))
         wc.mean <- mean(na.omit(WC_series[(length(WC_series)-(ct-1)):length(WC_series)]))
         
@@ -403,45 +408,18 @@ df$SD <- as.numeric(as.character(df$SD))
 df$WC <- as.numeric(as.character(df$WC))
 df$Time <- as.numeric(as.character(df$Time))
 
+write.csv(df,file = "Data/Results/sd_ct.csv")
+
 summary(glmer(Time ~ SD +(1|Id),data =df,binomial(link = "logit")))
-summary(glmer(Time ~ SD + Mean + (1|Id),data =df,binomial(link = "logit")))
-summary(glmer(Time ~ SD + Mean + WC +(1|Id),data =df,binomial(link = "logit")))
+summary(glmer(Time ~ WC +(1|Id),data =df,binomial(link = "logit")))
+
+summary(glmer(Time ~ SD + WC + (1|Id),data =df,binomial(link = "logit")))
 
 ########################################################################
 #Figures
 
-
-#correlation between Mean and SD 
-ggplot(data = df, aes(x = Mean,y=SD)) + geom_point() + xlab("Sentiment Mean")  +
-  theme_bw() + theme(axis.text.x = element_text(size=20),
-                     axis.text.y = element_text(size=15),
-                     axis.title.x = element_text(size = 20),
-                     axis.title.y = element_text(size = 20)) + 
-ggtitle("Sentiment: negemo \nIncludes: Tweets + Retweets + Likes") 
-
-#corelation between Mean and WC
-ggplot(data = df, aes(x = Mean,y=WC)) + geom_point() + xlab("Sentiment Mean")  +
-  theme_bw() + theme(axis.text.x = element_text(size=20),
-                     axis.text.y = element_text(size=15),
-                     axis.title.x = element_text(size = 20),
-                     axis.title.y = element_text(size = 20)) + 
-  ggtitle("Sentiment: i \nIncludes: Tweets + Retweets + Likes") 
-
-
-
-
-df$Time <-  factor(df$Time, levels = c("0", "1"))
-
-#sentiment mean
-ggplot(data = df, aes(x = Time,y=Mean)) + geom_boxplot() +
-  theme_bw() + theme(axis.text.x = element_text(size=20),
-                     axis.text.y = element_text(size=15),
-                     axis.title.y = element_text(size = 20))+
-  scale_x_discrete(labels= c("14 days farthest","14 days closest")) +
-  theme(axis.title.x=element_blank()) + ggtitle("Sentiment: i \nIncludes: Only Tweets")
-
 #mean standard deviation
-ggplot(data = df, aes(x = Time,y=SD)) + geom_boxplot() +
+ggplot(data = df, aes(x = as.factor(Time),y=SD)) + geom_boxplot() +
   theme_bw() + theme(axis.text.x = element_text(size=20),
                      axis.text.y = element_text(size=15),
                      axis.title.y = element_text(size = 20))+
@@ -449,34 +427,9 @@ ggplot(data = df, aes(x = Time,y=SD)) + geom_boxplot() +
   theme(axis.title.x=element_blank()) + ggtitle("Sentiment: i \nIncludes: Only Tweets")
 
 #mean word count
-ggplot(data = df, aes(x = Time,y=WC)) + geom_boxplot() +
+ggplot(data = df, aes(x = as.factor(Time),y=WC)) + geom_boxplot() +
   theme_bw() + theme(axis.text.x = element_text(size=20),
                      axis.text.y = element_text(size=15),
                      axis.title.y = element_text(size = 20))+
   scale_x_discrete(labels= c("14 days farthest","14 days closest")) +
   theme(axis.title.x=element_blank()) + ggtitle("Sentiment: i \nIncludes: Only Tweets")
-
-#spaghetti plots
-ggplot(data = df,
-       mapping = aes(x = Time,
-                     y = SD,
-                     group = Id)) +
-  geom_point(alpha = 0.5) +
-  geom_line(alpha = 0.5)  + geom_smooth(se=FALSE, colour="black", size=2) + theme_bw() +
-  theme(
-    axis.title.x = element_text(size = 16),
-    axis.text.x = element_text(size = 14),
-    axis.title.y = element_text(size = 16))
-
-
-ggplot(data = df,
-       mapping = aes(x = Time,
-                     y = WC,
-                     group = Id)) +
-  geom_point(alpha = 0.5) +
-  geom_line(alpha = 0.5)  + geom_smooth(se=FALSE, colour="black", size=2) + theme_bw() +
-  theme(
-    axis.title.x = element_text(size = 16),
-    axis.text.x = element_text(size = 14),
-    axis.title.y = element_text(size = 16))
-

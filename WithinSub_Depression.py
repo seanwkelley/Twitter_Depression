@@ -102,8 +102,8 @@ file = open('Data/Participant_Data/key.key', 'rb')
 key = file.read()
 file.close()
 
-#participants data file 
-with open('Data/Participant_Data/FYP_Twitter_Participants.csv.encrypted', 'rb') as f:
+#participants data file, FYP, CW and SG
+with open('Data/Participant_Data/FYP.SG_Twitter_Participants.csv.encrypted', 'rb') as f:
     data = f.read()
 
 #de-encrypt the Participants.csv data file 
@@ -121,7 +121,7 @@ file_names = list(Participant_info['Twitter_Handle'])
 id_dict = dict(zip(Participant_info['Twitter_Handle'],Participant_info['Id']))
 
 #results of sentiment analysis 
-VADER_ANEW_LIWC = pd.read_csv(path + 'Data/Sentiments/' + tweet_type + '/' + 'VADER_ANEW_LIWC_complete.csv',encoding="utf-8")
+VADER_ANEW_LIWC = pd.read_csv(path + 'Data/Sentiments/' + tweet_type + '/' + 'VADER_ANEW_LIWC_complete_dep_FYPSG.csv',encoding="utf-8")
 
 print(type(VADER_ANEW_LIWC))
 
@@ -129,7 +129,7 @@ print(type(VADER_ANEW_LIWC))
 display_time = 3600*24
 
 #duration of critical transition prior to depression onset 
-ct = 14
+ct = 60
 
 Participant_info['missing_days'] = ""
 
@@ -291,4 +291,4 @@ for i in range(0,len(sentiments_dep)):
 
 sentiments_dep = pd.concat(sentiments_dep)
 #sentiments_dep.to_csv('Data/Sentiments/'+ tweet_type + '/VADER_ANEW_LIWC_complete_dep.csv',index = False)
-
+sentiments_dep.to_csv('Data/Sentiments/'+ tweet_type + '/VADER_ANEW_LIWC_complete_dep_FYPSG_ct60.csv',index = False)

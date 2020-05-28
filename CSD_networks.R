@@ -89,27 +89,26 @@ FYP_df <- FYP_df[which(FYP_df$Id %in% participants$Id),]
 
 FYP_df <- FYP_df[which(FYP_df$Date != ''),]
 #create a 3rd person pronoun category 
-FYP_df$pro3 <- (FYP_df$shehe + FYP_df$they)/2
+
 #############################################################
-network_centrality <- list(); edge_num <- list(); expect.influ_centrality <- list()
+network_centrality <- list(); edge_num <- list()
 
 for(id in unique(FYP_df$Id)){
   
   print(id)
-  #en_var <- FYP_df %>% filter(Id == id) %>% select(c(WC,bio,WPS,negemo,shehe,adverb,leisure,Exclam,death,
-  #                                                   Sixltr,relig,verb,compare,we,sad))
-  
-  en_var <- FYP_df %>% filter(Id == id) %>% select(c(bio,negemo,shehe,adverb,leisure,Exclam,death,
-                                                     Sixltr,relig,verb,compare,we,sad))
-
+  #l1 ratio = 0.9 (top 10)
+  en_var <- FYP_df %>% filter(Id == id) %>% select(WC,bio,WPS,negemo,shehe,adverb,leisure,Exclam,death,Sixltr)
+ 
   SDS <- as.numeric(participants %>% filter(Id == id) %>% select(SDS_Total))
   Dep_ep <- as.numeric(participants %>% filter(Id == id) %>% select(Dep_ep_pastyear))
   
   en_var <- as.matrix(en_var)
-  if(dim(en_var)[1] >= 60 & all(apply(en_var, 2, sd) != 0)){
+  if(dim(en_var)[1] >= 30 & all(apply(en_var, 2, sd) != 0)){
   print(dim(en_var)[1])
-  net1 <- graphicalVAR(en_var, nLambda = 10, verbose = TRUE, gamma = 0,scale = TRUE, maxit.in = 100,
-                       maxit.out = 100)
+
+    
+  try(net1 <- graphicalVAR(en_var, nLambda = 10, verbose = TRUE, gamma = 0,scale = TRUE, maxit.in = 100,
+                             maxit.out = 100),silent=TRUE )
   
   net1_PCC <- qgraph(net1$PCC)
   net1_centrality <- centrality(net1_PCC)$InDegree
@@ -119,41 +118,43 @@ for(id in unique(FYP_df$Id)){
   net1_edge[which(net1_edge != 0)] <- 1
   net1_edge <- colSums(net1_edge)
   
-  net1_expect.influ <-  centrality(net1_PCC)$InExpectedInfluence
+  
+  inexpectedinfluence <- centrality(net1_PCC)$InExpectedInfluence
   
   network_centrality[[id]] <- c(net1_centrality,Dep_ep,SDS)
   edge_num[[id]] <- c(net1_edge,Dep_ep,SDS)
-  expect.influ_centrality[[id]] <- c(net1_expect.influ,Dep_ep,SDS)
   }
 }
 
+
+
+
 #node edge strength 
 indiv_nets <- do.call(rbind, network_centrality)
-colnames(indiv_nets)[16:17] <- c("Depressive_Episode_pastyear","SDS_Total")
+colnames(indiv_nets)[11:12] <- c("Depressive_Episode_pastyear","SDS_Total")
 indiv_nets <- as.data.frame(indiv_nets)
-indiv_nets$Mean_Centrality <- rowMeans(indiv_nets[,1:15])
-indiv_nets <- indiv_nets %>% select(colnames(indiv_nets)[1:15],Mean_Centrality,Depressive_Episode_pastyear,SDS_Total)
-#indiv_nets[1:16] <- remove_all_outliers(indiv_nets[1:16])
+indiv_nets$Mean_Centrality <- rowMeans(indiv_nets[,1:10])
+indiv_nets <- indiv_nets %>% select(colnames(indiv_nets)[1:10],Mean_Centrality,Depressive_Episode_pastyear,SDS_Total)
 
 
-close_cent <- do.call(rbind, expect.influ_centrality)
-colnames(close_cent)[16:17] <- c("Depressive_Episode_pastyear","SDS_Total")
-close_cent <- as.data.frame(close_cent)
-close_cent$Mean_Centrality <- rowMeans(close_cent[,1:15])
-close_cent <- close_cent %>% select(colnames(close_cent)[1:15],Mean_Centrality,Depressive_Episode_pastyear,SDS_Total)
-close_cent[,1:16] <- remove_all_outliers(close_cent[1:16])
+indiv_nets[,1:11] <- remove_all_outliers(indiv_nets[1:11])
+
+
+
 
 
 #############################################################
 #stat models 
-summary(glm(WC ~ Depressive_Episode_pastyear, family = gaussian(),data = indiv_nets))
-summary(glm(WC ~ Depressive_Episode_pastyear, family = gaussian(),data = node_edges))
-
-summary(glm(Depressive_Episode_pastyear ~ ngm, family = binomial(link = "logit"),data = indiv_nets))
-summary(glm(Depressive_Episode_pastyear ~ negemo, family = binomial(link = "logit"),data = indiv_nets))
+summary(glm(Mean_Centrality ~ Depressive_Episode_pastyear, family = gaussian(),data = indiv_nets))
 
 #############################################################
 #figures 
+
+ggplot(data = indiv_nets, aes(x = SDS_Total,y=Mean_Centrality)) + geom_point() + xlab("Current Depression (SDS")  +
+  theme_bw() + theme(axis.text.x = element_text(size=20),
+                     axis.text.y = element_text(size=15),
+                     axis.title.x = element_text(size = 20),
+                     axis.title.y = element_text(size = 20)) + ylab("Mean Node Strength")
 
 ggplot(data = indiv_nets, aes(x = SDS_Total,y=ngm)) + geom_point() + xlab("Sentiment Mean")  +
   theme_bw() + theme(axis.text.x = element_text(size=20),
@@ -163,11 +164,9 @@ ggplot(data = indiv_nets, aes(x = SDS_Total,y=ngm)) + geom_point() + xlab("Senti
   ggtitle("Sentiment: negemo \nIncludes: Tweets + Retweets + Likes") 
 
 
-
 #box plots for differences between sentiments for participants with/without a depressive episode in the past year 
 indiv_nets$Depressive_Episode_pastyear <- as.factor(indiv_nets$Depressive_Episode_pastyear)
-node_edges$Depressive_Episode_pastyear <- as.factor(node_edges$Depressive_Episode_pastyear)
-close_cent$Depressive_Episode_pastyear <- as.factor(close_cent$Depressive_Episode_pastyear)
+
 #mean word count
 ggplot(data = indiv_nets, aes(x = Depressive_Episode_pastyear,y=Mean_Centrality)) + geom_boxplot() +
   theme_bw() + theme(axis.text.x = element_text(size=20),

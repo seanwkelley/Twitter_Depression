@@ -299,5 +299,5 @@ CSD['Between_Episodes'] = pd.DataFrame(between_episode_period)
 CSD['Start'] = pd.DataFrame(start_episode)
 CSD['End'] = pd.DataFrame(end_episode)
 
-CSD.to_csv(path + 'Sentiments/' + tweet_type + '/' + 'CSD_Episodes.csv',index = False)
+CSD.to_csv(path + 'Data/Sentiments/' + tweet_type + '/' + 'CSD_Episodes.csv',index = False)
 

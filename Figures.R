@@ -161,40 +161,40 @@ glm_estimates$Sentiment <- c("negemo","posemo","i","we","shehe","they","you","sw
                              "article","negate")
 
 glm_estimates[1,2] <- summary(glm(negemo ~ SDS_Total,data = FYP))$coefficients[2,1]
-glm_estimates[1,3] <- summary(glm(negemo ~ SDS_Total,data = FYP))$coefficients[2,2]
+glm_estimates[1,3] <- summary(glm(negemo ~ SDS_Total,data = FYP))$coefficients[2,2]*1.96
 
 glm_estimates[2,2] <- summary(glm(posemo ~ SDS_Total,data = FYP))$coefficients[2,1]
-glm_estimates[2,3] <- summary(glm(posemo ~ SDS_Total,data = FYP))$coefficients[2,2]
+glm_estimates[2,3] <- summary(glm(posemo ~ SDS_Total,data = FYP))$coefficients[2,2]*1.96
 
 glm_estimates[3,2] <- summary(glm(i ~ SDS_Total,data = FYP))$coefficients[2,1]
-glm_estimates[3,3] <- summary(glm(i ~ SDS_Total,data = FYP))$coefficients[2,2]
+glm_estimates[3,3] <- summary(glm(i ~ SDS_Total,data = FYP))$coefficients[2,2]*1.96
 
 glm_estimates[4,2] <- summary(glm(we ~ SDS_Total,data = FYP))$coefficients[2,1]
-glm_estimates[4,3] <- summary(glm(we ~ SDS_Total,data = FYP))$coefficients[2,2]
+glm_estimates[4,3] <- summary(glm(we ~ SDS_Total,data = FYP))$coefficients[2,2]*1.96
 
 glm_estimates[5,2] <- summary(glm(shehe ~ SDS_Total,data = FYP))$coefficients[2,1]
-glm_estimates[5,3] <- summary(glm(shehe ~ SDS_Total,data = FYP))$coefficients[2,2]
+glm_estimates[5,3] <- summary(glm(shehe ~ SDS_Total,data = FYP))$coefficients[2,2]*1.96
 
 glm_estimates[6,2] <- summary(glm(they ~ SDS_Total,data = FYP))$coefficients[2,1]
-glm_estimates[6,3] <- summary(glm(they ~ SDS_Total,data = FYP))$coefficients[2,2]
+glm_estimates[6,3] <- summary(glm(they ~ SDS_Total,data = FYP))$coefficients[2,2]*1.96
 
 glm_estimates[7,2] <- summary(glm(you ~ SDS_Total,data = FYP))$coefficients[2,1]
-glm_estimates[7,3] <- summary(glm(you ~ SDS_Total,data = FYP))$coefficients[2,2]
+glm_estimates[7,3] <- summary(glm(you ~ SDS_Total,data = FYP))$coefficients[2,2]*1.96
 
 glm_estimates[8,2] <- summary(glm(swear ~ SDS_Total,data = FYP))$coefficients[2,1]
-glm_estimates[8,3] <- summary(glm(swear ~ SDS_Total,data = FYP))$coefficients[2,2]
+glm_estimates[8,3] <- summary(glm(swear ~ SDS_Total,data = FYP))$coefficients[2,2]*1.96
 
 glm_estimates[9,2] <- summary(glm(article ~ SDS_Total,data = FYP))$coefficients[2,1]
-glm_estimates[9,3] <- summary(glm(article ~ SDS_Total,data = FYP))$coefficients[2,2]
+glm_estimates[9,3] <- summary(glm(article ~ SDS_Total,data = FYP))$coefficients[2,2]*1.96
 
 glm_estimates[10,2] <- summary(glm(negate ~ SDS_Total,data = FYP))$coefficients[2,1]
-glm_estimates[10,3] <- summary(glm(negate ~ SDS_Total,data = FYP))$coefficients[2,2]
+glm_estimates[10,3] <- summary(glm(negate ~ SDS_Total,data = FYP))$coefficients[2,2]*1.96
 
 mean.est <- ggplot(glm_estimates, aes(x= reorder(Sentiment, -Estimate), y=Estimate)) + 
   geom_point() +coefplot_theme + 
   geom_errorbar(aes(ymin=Estimate-SE, ymax=Estimate+SE), width=.2,position=position_dodge(0.05)) +
   xlab("LIWC Sentiment\n") + geom_hline(yintercept=0, linetype="dashed", color = "black") +
-  ylab("\n Regression Coefficient (SE)") +  coord_flip()
+  ylab("\n Regression Coefficient (95% CI)") +  coord_flip()
 
 
 (combined | mean.est) +  plot_layout(widths = c(2, 1)) + 
