@@ -49,14 +49,14 @@ remove_all_outliers <- function(d){
 setwd('D:/Twitter_Depression_Kelley/')
 
 tweet_type = "all_tweets"
-path = paste0('Data/Sentiments/',tweet_type,"/VADER_ANEW_LIWC_complete_dep_FYPSG.csv",collapse = "")
+path = paste0('Data/Sentiments/',tweet_type,"/VADER_ANEW_LIWC_complete_dep.csv",collapse = "")
 
 
 #sentiment analysis results based on tweet type 
 FYP_df <- read.csv(path,stringsAsFactors = FALSE)
 colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
 
-participants <- read.csv('Data/Participant_Data/FYP.SG_Twitter_Participants.csv')
+participants <- read.csv('Data/Participant_Data/Twitter_Participants.csv')
 
 #############################################################
 #############################################################
