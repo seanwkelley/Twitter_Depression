@@ -75,6 +75,7 @@ summary(glm(you ~ Depression_zscore, family = "gaussian",data = FYP))
 
 ##################################################################
 
+#association of depressive episode with word count after controlling for age, gender, education, and employment 
 summary(glm(WC ~ Dep_ep_pastyear + Age + Gender + Education + Employment, family = "gaussian",data = FYP))
 
 
