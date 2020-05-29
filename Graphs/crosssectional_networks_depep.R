@@ -85,8 +85,8 @@ raincloud_theme4 = theme(
   axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
   axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
 
-dc_ep <- read.csv('Data/Results/all_tweets/Node.Strength_dechoudhury_episodepastyear.FYPSG.csv')
-dc_ws <- read.csv('Data/Results/all_tweets/Node.Strength_dechoudhury_withinepisode.FYPSG.csv')
+dc_ep <- read.csv('Data/Results/all_tweets/Node.Strength_dechoudhury_episodepastyear.csv')
+dc_ws <- read.csv('Data/Results/all_tweets/Node.Strength_dechoudhury_withinepisode.csv')
 
 colnames(dc_ep)[1] <- "Id"; colnames(dc_ws)[1] <- "Id"
 dc_Ws <- dc_ws[,-14]
