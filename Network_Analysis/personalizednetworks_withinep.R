@@ -64,15 +64,19 @@ participants <- read.csv('Data/Participant_Data/Twitter_Participants.csv')
 FYP_df <- FYP_df[which(FYP_df$Id %in% participants$Id),]
 
 FYP_df <- FYP_df[which(FYP_df$Date != ''),]
+FYP_df$pro3 <- (FYP_df$shehe + FYP_df$they)/2
 #############################################################
 depression_centrality <- list(); nodepression_centrality <- list()
 
+length_depressive.days <- list()
+length_no.depressive.days <- list()
+
 for(id in unique(FYP_df$Id)){
   
-  print(id)
-  
+  print(paste0(which(unique(FYP_df$Id) == id)/length(unique(FYP_df$Id))," ",id))
   #de Choudhury variables 
-  en_var <- FYP_df %>% filter(Id == id) %>% select(negemo,posemo,i,we,shehe,they,you,swear,article,negate,Depressed_today)
+  
+  en_var <- FYP_df %>% filter(Id == id) %>% select(negemo,posemo,i,we,pro3,you,swear,article,negate,Depressed_today)
 
   
   depression_network <- en_var %>% filter(Depressed_today == 1) %>% select(-Depressed_today)
@@ -87,7 +91,8 @@ for(id in unique(FYP_df$Id)){
   if(dim(depression_network)[1] >= 15 & all(apply(depression_network, 2, sd) != 0)){
     if(dim(nondepression_network)[1] >= 15 & all(apply(nondepression_network, 2, sd) != 0)){
 
-      
+      print(dim(depression_network)[1]); print(dim(nondepression_network)[1])
+
       try(net_dep <- graphicalVAR(depression_network, nLambda = 10, verbose = TRUE, gamma = 0,scale = TRUE, maxit.in = 100,
                                   maxit.out = 100,deleteMissings = TRUE,centerWithin = TRUE),silent = TRUE)
       
@@ -98,26 +103,65 @@ for(id in unique(FYP_df$Id)){
       
       net_dep_centrality <- centrality(net_dep_PCC)$InDegree;net_nodep_centrality <- centrality(net_nodep_PCC)$InDegree
       
-      nodepression_centrality[[id]] <- c(net_nodep_centrality,Dep_ep,SDS,0)
-      depression_centrality[[id]] <- c(net_dep_centrality,Dep_ep,SDS,1)
+      nodepression_centrality[[id]] <- c(net_nodep_centrality,Dep_ep,dim(nondepression_network)[1],SDS,0)
+      depression_centrality[[id]] <- c(net_dep_centrality,Dep_ep,dim(depression_network)[1],SDS,1)
     }
   }
 }
 
 #node edge strength 
 nodep_net <- do.call(rbind, nodepression_centrality)
-colnames(nodep_net )[11:13] <- c("Depressive_Episode_pastyear","SDS_Total","Depressed_Today")
+colnames(nodep_net )[10:13] <- c("Depressive_Episode_pastyear","Days","Depression_zscore","Depressed_Today")
 nodep_net <- as.data.frame(nodep_net)
-nodep_net$Mean_Centrality <- rowMeans(nodep_net[,1:10])
-nodep_net <- nodep_net %>% select(colnames(nodep_net)[1:10],Mean_Centrality,Depressive_Episode_pastyear,SDS_Total,Depressed_Today)
+nodep_net$Mean_Centrality <- rowMeans(nodep_net[,1:9])
+nodep_net <- nodep_net %>% select(colnames(nodep_net)[1:9],Mean_Centrality,Depressive_Episode_pastyear,Depression_zscore,Days,Depressed_Today)
 nodep_net$Id <- rownames(nodep_net)
 
 dep_net <- do.call(rbind, depression_centrality)
-colnames(dep_net )[11:13] <- c("Depressive_Episode_pastyear","SDS_Total","Depressed_Today")
+colnames(dep_net )[10:13] <- c("Depressive_Episode_pastyear","Days","Depression_zscore","Depressed_Today")
 dep_net <- as.data.frame(dep_net)
-dep_net$Mean_Centrality <- rowMeans(dep_net[,1:10])
-dep_net <- dep_net %>% select(colnames(dep_net)[1:10],Mean_Centrality,Depressive_Episode_pastyear,SDS_Total,Depressed_Today)
+dep_net$Mean_Centrality <- rowMeans(dep_net[,1:9])
+dep_net <- dep_net %>% select(colnames(dep_net)[1:9],Mean_Centrality,Depressive_Episode_pastyear,Depression_zscore,Days,Depressed_Today)
 dep_net$Id <- rownames(dep_net)
 
 within_network <- as.data.frame(rbind(dep_net,nodep_net))
 within_network <- within_network[order(within_network$Id),]
+write.csv(within_network,file = "Data/Results/all_tweets/Node.Strength_dechoudhury_withinepisode_15d.csv")
+
+within_network[,1:10] <- remove_all_outliers(within_network[1:10])
+
+
+               
+
+summary(lmer(Mean_Centrality ~ Depressed_Today + (1|Id),data = within_network))
+summary(lmer(ngm ~ Depressed_Today + (1|Id),data = within_network))
+summary(lmer(psm ~ Depressed_Today +  (1|Id),data = within_network))
+summary(lmer(i ~ Depressed_Today + (1|Id),data = within_network))
+summary(lmer(we ~ Depressed_Today + (1|Id),data = within_network))
+summary(lmer(pro3 ~ Depressed_Today +   (1|Id),data = within_network))
+summary(lmer(you ~ Depressed_Today + (1|Id),data = within_network))
+summary(lmer(swr ~ Depressed_Today +  (1|Id),data = within_network))
+summary(lmer(art ~ Depressed_Today +   (1|Id),data = within_network))
+summary(lmer(ngt ~ Depressed_Today +  (1|Id),data = within_network))
+
+
+
+summary(lmer(Mean_Centrality ~ Depressed_Today + Days + (1|Id),data = within_network))
+summary(lmer(ngm ~ Depressed_Today +  Days + (1|Id),data = within_network))
+summary(lmer(psm ~ Depressed_Today +  Days +(1|Id),data = within_network))
+summary(lmer(i ~ Depressed_Today +  Days +(1|Id),data = within_network))
+summary(lmer(we ~ Depressed_Today + Days +  (1|Id),data = within_network))
+summary(lmer(pro3 ~ Depressed_Today +  Days + (1|Id),data = within_network))
+summary(lmer(you ~ Depressed_Today +  Days + (1|Id),data = within_network))
+summary(lmer(swr ~ Depressed_Today +  Days + (1|Id),data = within_network))
+summary(lmer(art ~ Depressed_Today +  Days + (1|Id),data = within_network))
+summary(lmer(ngt ~ Depressed_Today +  Days + (1|Id),data = within_network))
+
+
+
+
+
+
+
+
+

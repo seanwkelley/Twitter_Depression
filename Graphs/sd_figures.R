@@ -162,6 +162,22 @@ sentiments.detrend$Id <- rownames(sentiments.detrend)
 sentiments.detrend$Depression_zscore <- participants$Depression_zscore[which(participants$Id %in% sentiments.detrend$Id)]
 sentiments.detrend$Dep_Episode <- participants$Dep_ep_pastyear[which(participants$Id %in% sentiments.detrend$Id)]
 
+
+
+#Betas (p-value) of de Choudhury variables 
+summary(glm(negemo ~ Depression_zscore, family = "gaussian",data = sentiments.detrend))
+summary(glm(posemo ~ Depression_zscore, family = "gaussian",data = sentiments.detrend))
+summary(glm(i ~ Depression_zscore, family = "gaussian",data = sentiments.detrend))
+summary(glm(we ~ Depression_zscore, family = "gaussian",data = sentiments.detrend))
+summary(glm(swear ~ Depression_zscore, family = "gaussian",data = sentiments.detrend))
+summary(glm(negate ~ Depression_zscore, family = "gaussian",data = sentiments.detrend))
+summary(glm(article ~ Depression_zscore, family = "gaussian",data = sentiments.detrend))
+summary(glm(they ~ Depression_zscore, family = "gaussian",data = sentiments.detrend))
+summary(glm(shehe ~ Depression_zscore, family = "gaussian",data = sentiments.detrend))
+summary(glm(you ~ Depression_zscore, family = "gaussian",data = sentiments.detrend))
+
+
+
 ########################################################################################
 #scatterplots
 

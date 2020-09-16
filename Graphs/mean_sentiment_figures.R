@@ -6,6 +6,8 @@ library(bootnet)
 library(qgraph)
 library(NetworkComparisonTest)
 library(patchwork)
+library(extrafont)
+loadfonts(device = "win")
 #Sentiment analysis averaged over past year 
 #Tweets, retweets, and likes 
 setwd('D:/Twitter_Depression_Kelley/')
@@ -36,16 +38,16 @@ number_ticks <- function(n) {function(limits) pretty(limits, n)}
 
 raincloud_theme = theme(
   panel.background = element_blank(),
-  text = element_text(size = 10),
+  text = element_text(size = 36,family = "Arial"),
   axis.title.x = element_blank(),
-  axis.title.y = element_text(size = 16),
-  axis.text = element_text(size = 14),
-  axis.text.x = element_text(vjust = 0.5,colour = "black"),
-  axis.text.y = element_text(colour = "black"),
-  legend.title=element_text(size=16),
-  legend.text=element_text(size=16),
+  axis.title.y = element_text(size = 36,family = "Arial"),
+  axis.text = element_text(size = 36,family = "Arial"),
+  axis.text.x = element_text(vjust = 0.5,colour = "black",family = "Arial"),
+  axis.text.y = element_text(colour = "black",family = "Arial"),
+  legend.title=element_text(size=36,family = "Arial"),
+  legend.text=element_text(size=36,family = "Arial"),
   legend.position = "right",
-  plot.title = element_text(lineheight=.8, face="bold", size = 16),
+  plot.title = element_text(lineheight=.8, face="bold", size = 20,family = "Arial"),
   panel.border = element_blank(),
   panel.grid.minor = element_blank(),
   panel.grid.major = element_blank(),
@@ -53,128 +55,88 @@ raincloud_theme = theme(
   axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
 
 
-coefplot_theme = theme(
-  panel.background = element_blank(),
-  text = element_text(size = 10),
-  axis.title.x = element_text(size = 16),
-  axis.title.y = element_text(size = 16),
-  axis.text = element_text(size = 14),
-  axis.text.x = element_text(vjust = 0.5,colour = "black"),
-  axis.text.y = element_text(colour = "black"),
-  legend.title=element_text(size=16),
-  legend.text=element_text(size=16),
-  legend.position = "right",
-  plot.title = element_text(lineheight=.8, face="bold", size = 16),
-  panel.border = element_blank(),
-  panel.grid.minor = element_blank(),
-  panel.grid.major = element_blank(),
-  axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
-  axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
 #############################################################
 #############################################################
 #sentiment analysis based on tweets 
 
-FYP_df <- read.csv('Data/Sentiments/all_tweets/VADER_ANEW_LIWC_complete.csv')
-colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
+tweet_type = "all_tweets"
+path = paste0('Data/Sentiments/',tweet_type,"/VADER_ANEW_LIWC_complete_dep.csv",collapse = "")
 participants <- read.csv('Data/Participant_Data/Twitter_Participants.csv')
 
+#sentiment analysis results based on tweet type 
+FYP_df <- read.csv(path,stringsAsFactors = FALSE)
+colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
+FYP_df <- FYP_df[which(FYP_df$Date != ''),]
+dc_all <- read.csv('Data/Results/all_tweets/Node.Strength_dechoudhury_episodepastyear.csv')
+colnames(dc_all)[1] <- "Id"
 
-#average sentiments over the past year 
+#filter participants with at least 30 days of 
+FYP_df <- FYP_df %>% filter(Id %in% unique(dc_all$Id))
+FYP_df$pro3 <- (FYP_df$shehe + FYP_df$they)/2
+
+FYP_df <- FYP_df[,c(3,8:94,96)]
 FYP_df_mean <- aggregate(. ~ Id , data = FYP_df, FUN = "mean")
-
-#remove outliers greater or less than 3 sd from the mean 
-FYP_df_mean[,6:93]= remove_all_outliers(FYP_df_mean[6:93])
-FYP_df_mean[,6:93] = scale(FYP_df_mean[,6:93])
-
-
-
-#merge sentiments and participants data 
+FYP_df_mean[,c(2:87,89)]= remove_all_outliers(FYP_df_mean[c(2:87,89)])
+FYP_df_mean[,c(2:87,89)] = scale(FYP_df_mean[,c(2:87,89)])
 FYP <- merge(participants,FYP_df_mean,by='Id')
+
 
 ########################################################################################
 #scatterplots
 
-g1 <- ggplot(FYP,aes(y = negemo,x=Depression_zscore)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 2,se=FALSE) + ylab(expression("negemo ( " * mu ~ ")"))
+#"FantasticFox1" color scheme 
+
+g1 <- ggplot(FYP,aes(y = negemo,x=Depression_zscore)) + geom_point(alpha= 0.8,color = "#DD8D29",size =3) + xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("negemo") 
 
 
-g2 <- ggplot(FYP,aes(y = posemo,x=Depression_zscore)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 2,se=FALSE) + ylab(expression("posemo ( " * mu ~ ")"))
+g2 <- ggplot(FYP,aes(y = posemo,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#E2D200",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("posemo")
 
-g3 <- ggplot(FYP,aes(y = i,x=Depression_zscore)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 2,se=FALSE)+ ylab(expression("i ( " * mu ~ ")"))
+g3 <- ggplot(FYP,aes(y = i,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#46ACC8",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black")+ ylab("i")
+
+#Rushmore 1 number 3
+g4 <- ggplot(FYP,aes(y = we,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#0B775E",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black")+ ylab("we")
+
+g5 <- ggplot(FYP,aes(y = you,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#B40F20",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black")+ ylab("you")
+
+#Darjeeling2 color scheme  
+
+g6 <- ggplot(FYP,aes(y = pro3,x=Depression_zscore)) + geom_point(alpha = 0.8,color= "#C51B7D",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black")+ ylab("pro3")
+
+#g7 <- ggplot(FYP,aes(y = they,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#046C9A",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
+#  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("they")
+
+g8 <- ggplot(FYP,aes(y = swear,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#8C510A",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("swear")
+
+g9 <- ggplot(FYP,aes(y = negate,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#7FBC41",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("negate")
+
+g10 <- ggplot(FYP,aes(y = article,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#08306B",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("article")
+
+#combined <- (g10 + g4 + g2 + g6 + g5 +  plot_layout(ncol = 5)) / (g8 + g9 + g3 + g1  + plot_layout(ncol = 5))  +
+#  plot_annotation(caption = "\n           Depression Symptom Severity (z-score)",tag_levels = 'A', 
+#                  theme = theme(plot.caption = element_text(size = 36,hjust = 0.5,family = "Arial")))
 
 
-g4 <- ggplot(FYP,aes(y = we,x=Depression_zscore)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 2,se=FALSE)+ ylab(expression("we ( " * mu ~ ")"))
+combined <- (g10 + g4 + g2 ) / (g6 + g5 + g8) / (g9 + g3 + g1) +
+  plot_annotation(caption = "\n           Depression Symptom Severity (z-score)",tag_levels = 'A', 
+                  theme = theme(plot.caption = element_text(size = 36,hjust = 0.5,family = "Arial")))
 
-g5 <- ggplot(FYP,aes(y = you,x=Depression_zscore)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 2,se=FALSE)+ ylab(expression("you ( " * mu ~ ")"))
+combined <- combined & ylim(-2,4) & scale_x_continuous(breaks=number_ticks(4)) &
+  theme(plot.tag = element_text(size = 36,face = "bold",family = "Arial"))
 
 
-g6 <- ggplot(FYP,aes(y = shehe,x=Depression_zscore)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 2,se=FALSE)+ ylab(expression("shehe ( " * mu ~ ")"))
+tiff("Figures/Mean_Regression.tiff", units="cm", width=50, height=50, res=600)
+combined
+dev.off()
 
-g7 <- ggplot(FYP,aes(y = they,x=Depression_zscore)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 2,se=FALSE) + ylab(expression("they ( " * mu ~ ")"))
-
-g8 <- ggplot(FYP,aes(y = swear,x=Depression_zscore)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 2,se=FALSE) + ylab(expression("swear ( " * mu ~ ")"))
-
-g9 <- ggplot(FYP,aes(y = negate,x=Depression_zscore)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 2,se=FALSE) + ylab(expression("negate ( " * mu ~ ")"))
-
-g10 <- ggplot(FYP,aes(y = article,x=Depression_zscore)) + geom_point() +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 2,se=FALSE) + ylab(expression("article ( " *mu ~")"))
-
-combined <- (g4 + g2 + g10 + g6 + g7 +  plot_layout(ncol = 5)) / (g9 + g8 + g5 + g3 + g1  + plot_layout(ncol = 5))  +
-  plot_annotation(caption = "Depression Z-Score",tag_levels = 'A',  theme = theme(plot.caption = element_text(size = 18,hjust = 0.5)))
-
-combined <- combined & ylim(-2,4) & scale_x_continuous(breaks=number_ticks(4))
 
 ########################################################################################
-glm_estimates <- as.data.frame(matrix(nrow = 10,ncol = 3))
-colnames(glm_estimates) <- c("Sentiment","Estimate","SE")
-glm_estimates$Sentiment <- c("negemo","posemo","i","we","shehe","they","you","swear",
-                             "article","negate")
 
-glm_estimates[1,2] <- summary(glm(negemo ~ Depression_zscore,data = FYP))$coefficients[2,1]
-glm_estimates[1,3] <- summary(glm(negemo ~ Depression_zscore,data = FYP))$coefficients[2,2]*1.96
-
-glm_estimates[2,2] <- summary(glm(posemo ~ Depression_zscore,data = FYP))$coefficients[2,1]
-glm_estimates[2,3] <- summary(glm(posemo ~ Depression_zscore,data = FYP))$coefficients[2,2]*1.96
-
-glm_estimates[3,2] <- summary(glm(i ~ Depression_zscore,data = FYP))$coefficients[2,1]
-glm_estimates[3,3] <- summary(glm(i ~ Depression_zscore,data = FYP))$coefficients[2,2]*1.96
-
-glm_estimates[4,2] <- summary(glm(we ~ Depression_zscore,data = FYP))$coefficients[2,1]
-glm_estimates[4,3] <- summary(glm(we ~ Depression_zscore,data = FYP))$coefficients[2,2]*1.96
-
-glm_estimates[5,2] <- summary(glm(shehe ~ Depression_zscore,data = FYP))$coefficients[2,1]
-glm_estimates[5,3] <- summary(glm(shehe ~ Depression_zscore,data = FYP))$coefficients[2,2]*1.96
-
-glm_estimates[6,2] <- summary(glm(they ~ Depression_zscore,data = FYP))$coefficients[2,1]
-glm_estimates[6,3] <- summary(glm(they ~ Depression_zscore,data = FYP))$coefficients[2,2]*1.96
-
-glm_estimates[7,2] <- summary(glm(you ~ Depression_zscore,data = FYP))$coefficients[2,1]
-glm_estimates[7,3] <- summary(glm(you ~ Depression_zscore,data = FYP))$coefficients[2,2]*1.96
-
-glm_estimates[8,2] <- summary(glm(swear ~ Depression_zscore,data = FYP))$coefficients[2,1]
-glm_estimates[8,3] <- summary(glm(swear ~ Depression_zscore,data = FYP))$coefficients[2,2]*1.96
-
-glm_estimates[9,2] <- summary(glm(article ~ Depression_zscore,data = FYP))$coefficients[2,1]
-glm_estimates[9,3] <- summary(glm(article ~ Depression_zscore,data = FYP))$coefficients[2,2]*1.96
-
-glm_estimates[10,2] <- summary(glm(negate ~ Depression_zscore,data = FYP))$coefficients[2,1]
-glm_estimates[10,3] <- summary(glm(negate ~ Depression_zscore,data = FYP))$coefficients[2,2]*1.96
-
-mean.est <- ggplot(glm_estimates, aes(x= reorder(Sentiment, -Estimate), y=Estimate)) + 
-  geom_point() +coefplot_theme + 
-  geom_errorbar(aes(ymin=Estimate-SE, ymax=Estimate+SE), width=.2,position=position_dodge(0.05)) +
-  xlab("LIWC Sentiment\n") + geom_hline(yintercept=0, linetype="dashed", color = "black") +
-  ylab("\n Regression Coefficient (95% CI)") +  coord_flip()
-
-
-(combined | mean.est) +  plot_layout(widths = c(2, 1)) + 
-  plot_annotation(caption = "Depression Z-Score",tag_levels = 'A',
-                  theme = theme(plot.caption = element_text(size = 18,hjust = 0.3)))

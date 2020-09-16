@@ -55,53 +55,33 @@ FYP_df <- read.csv(path,stringsAsFactors = FALSE)
 colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
 
 episode = read.csv(path2,stringsAsFactors = FALSE)
-participants <- read.csv('Data/Participant_Data/FYP_Twitter_Participants.csv')
+participants <- read.csv('Data/Participant_Data/Twitter_Participants.csv')
 
-ct = 14
-percent_complete <- 0.5
-DE_duration <- 10
+episode <- episode %>% filter(Depressive_Episode >= 0)
 #############################################################
 #keep participants from free recruitment (OCI_6 coded as NA) and those who successfully completed the 
 #attention check
-participants <- participants[which(is.na(participants$OCI_6) | participants$OCI_6 == 1),]
 
-#sentiments from participants who passed attention check or are from free recruitment 
-FYP_df <- FYP_df[which(FYP_df$Id %in% participants$Id),]
-FYP_df <- FYP_df %>% filter(Date != '')
-#remove participants with either no depressed episodes reported in the past year OR 
-#participants with a depressive episode that covers the entire past year
-remove_ids <- list()
-for(i in 1:length(unique(FYP_df$Id))) {
-  print(i)
-  if(sd(as.numeric(as.character(FYP_df[which(FYP_df$Id == unique(FYP_df$Id)[i]),94]))) == 0) {
-    remove_ids[[i]] <- as.character(unique(FYP_df$Id)[i])
-  }
-}
 
-remove_ids <- unlist(remove_ids)
-FYP_df_subset <- FYP_df[which(FYP_df$Id %!in% remove_ids),]
-
-FYP_df_subset$Depressed_today <- as.factor(FYP_df_subset$Depressed_today)
+FYP_df$Depressed_today <- as.factor(FYP_df$Depressed_today)
+FYP_df <- FYP_df[which(FYP_df$Date != ''),]
+FYP_df <- FYP_df %>% filter(Id %in% episode$Id)
 ######################################################################################
 #Participants are included if they have at least 1 depressive with the following characteristics:
 #1. Have at least 50% of days in the 14 day period prior to a critical transiton with Tweet days
 #2. Have at least 10 days of Tweets within a depressive episode
 
 #participants with 
-list_names <- unique(episode$Id[which((episode$Critical_Transition >= (ct*percent_complete)) & (episode$Depressive_Episode >= DE_duration))])
-episode2 <- episode[which(episode$Id %in% list_names),]
-FYP_df_subset <- FYP_df_subset[which(FYP_df_subset$Id %in% unique(episode2$Id)),]
-
 #remove outliers in any of the sentiments (LIWC and ANEW) within-subject 
-FYP_df_subset <- FYP_df_subset %>% group_by(Id) %>% mutate_at(vars(colnames(FYP_df_subset)[6:93]), funs(remove_outliers))
+FYP_df[,6:93] <- remove_all_outliers(FYP_df[6:93])
 #############################################################################
 
 #linear mixed model with random slopes and random intercepts 
 #Within-subject effect of depression on negative emotions 
-fm <- lmer(negemo ~ Depressed_today +  ( 1 + Depressed_today|Id),data = FYP_df_subset)
+fm <- lmer(negemo ~ Depressed_today +  ( 1 + Depressed_today|Id),data = FYP_df)
 summary(fm)
 
-fm <- lmer(posemo ~ Depressed_today +  ( 1 + Depressed_today|Id),data = FYP_df_subset)
+fm <- lmer(posemo ~ Depressed_today +  ( 1 + Depressed_today|Id),data = FYP_df)
 summary(fm)
 
 fm <- lmer(shehe ~ Depressed_today +  ( 1 + Depressed_today|Id),data = FYP_df_subset)
@@ -109,7 +89,7 @@ summary(fm)
 #############################################################################
 #Figures - boxplot and spaghetti plot 
 
-with_sub <- aggregate(negemo ~ Depressed_today + Id,data = FYP_df_subset,FUN = mean)
+with_sub <- aggregate(negemo ~ Depressed_today + Id,data = FYP_df,FUN = mean)
 
 #spaghetti plots of differences in negemo during and off a depressive episode 
 ggplot(data = with_sub,
