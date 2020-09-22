@@ -1,4 +1,4 @@
-#Sentiment Analysis of all participants in Participants.csv file 
+#Get the percentage of Tweets that are in English from all participants 
 
 import os
 import re
@@ -417,6 +417,7 @@ file_names = list(Participant_info['Twitter_Handle'])
 
 english_percentage = []; id_english = []; num_days = []
 
+#loop through individual files 
 for i in range(0,len(file_names)):
     handle = file_names[i]
     os.chdir(path)
@@ -486,6 +487,7 @@ for i in range(0,len(file_names)):
     print(is_english(sentiment_tweets_vader))
     print(number_days)
 
+    #get percent of Tweets from account that are in English 
     english_percentage.append(is_english(sentiment_tweets_vader))
     id_english.append(random_id)
     num_days.append(number_days)
