@@ -1,4 +1,7 @@
-#Sentiment Analysis of all participants in Participants.csv file 
+#Determine whether a day occurs within or outside a depressive episode within indiviudal time series 
+#Merge depressive episodes together if separated by less than 2 weeks
+#Exclude episodes that are shorter than 2 weeks 
+
 import os
 import re
 import pandas as pd
@@ -186,8 +189,6 @@ for i in range(0,len(file_names)):
     start.sort(); end.sort()
   
     #concatenate depressive episodes that are separated by less than or equal to 2 weeks
-    
-   
     dep_gap = 15
 
     while len(start) >= 2:
@@ -238,7 +239,7 @@ for i in range(0,len(file_names)):
 
     print(depressive_episodes)
 
-    #subset sentiments to one participant 
+    #subset text features to one participant 
     sentiments_handle = VADER_ANEW_LIWC[VADER_ANEW_LIWC['Twitter_Handle'] == random_id]
     sentiments_handle['Day']  = sentiments_handle['Day'].astype(str).astype(int)
 
@@ -260,6 +261,7 @@ for i in range(0,len(file_names)):
     except(TypeError):
         continue
 
+    #Iterate over all depressive episodes 
     for j in range(0,len(depressive_episodes['Start'])):
         name = "Episode_" + str(j)
         name2 = "Period_" + str(j)
@@ -269,8 +271,8 @@ for i in range(0,len(file_names)):
         sentiments_handle[name2] = ((sentiments_handle['Day'] >= depressive_episodes['Start'][j]-ct) & (sentiments_handle['Day'] <= depressive_episodes['Start'][j]-1)) 
 
 
+    #if date falls within a depressive episode, then set the depressed_today column value to 1
     nl = sentiments_handle.columns
-
     matching = [s for s in nl if "Episode_" in s]
     matching2 = [s for s in nl if "Period_" in s]
     for i in range(0,sentiments_handle.shape[0]):
