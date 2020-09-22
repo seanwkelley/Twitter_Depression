@@ -1,3 +1,7 @@
+#------------------------------------------
+#Figure 1:  Self-reported depression severity is associated with several text features derived from Tweets
+
+#------------------------------------------
 library(dplyr)
 library(ggplot2)
 library(lmerTest)
@@ -8,9 +12,8 @@ library(NetworkComparisonTest)
 library(patchwork)
 library(extrafont)
 loadfonts(device = "win")
-#Sentiment analysis averaged over past year 
-#Tweets, retweets, and likes 
-setwd('D:/Twitter_Depression_Kelley/')
+
+setwd('/Users/seankelley/Twitter_Depression_Kelley/')
 
 #############################################################
 #define functions 
@@ -70,7 +73,7 @@ FYP_df <- FYP_df[which(FYP_df$Date != ''),]
 dc_all <- read.csv('Data/Results/all_tweets/Node.Strength_dechoudhury_episodepastyear.csv')
 colnames(dc_all)[1] <- "Id"
 
-#filter participants with at least 30 days of 
+#filter participants with at least 30 days of Tweets
 FYP_df <- FYP_df %>% filter(Id %in% unique(dc_all$Id))
 FYP_df$pro3 <- (FYP_df$shehe + FYP_df$they)/2
 
@@ -83,8 +86,6 @@ FYP <- merge(participants,FYP_df_mean,by='Id')
 
 ########################################################################################
 #scatterplots
-
-#"FantasticFox1" color scheme 
 
 g1 <- ggplot(FYP,aes(y = negemo,x=Depression_zscore)) + geom_point(alpha= 0.8,color = "#DD8D29",size =3) + xlab("SDS Summed Score") + raincloud_theme + 
   geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("negemo") 
@@ -103,13 +104,9 @@ g4 <- ggplot(FYP,aes(y = we,x=Depression_zscore)) + geom_point(alpha = 0.8,color
 g5 <- ggplot(FYP,aes(y = you,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#B40F20",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
   geom_smooth(method = "lm",size = 3,se=FALSE,color = "black")+ ylab("you")
 
-#Darjeeling2 color scheme  
-
 g6 <- ggplot(FYP,aes(y = pro3,x=Depression_zscore)) + geom_point(alpha = 0.8,color= "#C51B7D",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
   geom_smooth(method = "lm",size = 3,se=FALSE,color = "black")+ ylab("pro3")
 
-#g7 <- ggplot(FYP,aes(y = they,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#046C9A",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
-#  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("they")
 
 g8 <- ggplot(FYP,aes(y = swear,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#8C510A",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
   geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("swear")
@@ -119,10 +116,6 @@ g9 <- ggplot(FYP,aes(y = negate,x=Depression_zscore)) + geom_point(alpha = 0.8,c
 
 g10 <- ggplot(FYP,aes(y = article,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#08306B",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
   geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("article")
-
-#combined <- (g10 + g4 + g2 + g6 + g5 +  plot_layout(ncol = 5)) / (g8 + g9 + g3 + g1  + plot_layout(ncol = 5))  +
-#  plot_annotation(caption = "\n           Depression Symptom Severity (z-score)",tag_levels = 'A', 
-#                  theme = theme(plot.caption = element_text(size = 36,hjust = 0.5,family = "Arial")))
 
 
 combined <- (g10 + g4 + g2 ) / (g6 + g5 + g8) / (g9 + g3 + g1) +

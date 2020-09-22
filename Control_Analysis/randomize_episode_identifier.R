@@ -1,3 +1,10 @@
+#--------------------------------------------------------
+#Permutation test to randomize order of episode identifer (within/outside) within-subject
+#Assess the bias due to networks constructed from short within-episode periods
+#Generates data to plot Figure S3
+#--------------------------------------------------------
+
+
 library(dplyr)
 library(ggplot2)
 library(lmerTest)
@@ -48,7 +55,7 @@ remove_all_outliers <- function(d){
 
 #############################################################
 #############################################################
-setwd('D:/Twitter_Depression_Kelley/')
+setwd('/Users/seankelley/Twitter_Depression_Kelley/')
 
 tweet_type = "all_tweets"
 path = paste0('Data/Sentiments/',tweet_type,"/VADER_ANEW_LIWC_complete_dep.csv",collapse = "")

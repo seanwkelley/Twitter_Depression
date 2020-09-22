@@ -1,3 +1,9 @@
+#-------------------------------------------
+#Figure S1: Global network connectivity is affected by number of days 
+#-------------------------------------------
+
+
+#Load necessary packages
 library(lmerTest)
 library(readr)
 library(tidyr)
@@ -13,9 +19,11 @@ library(bootnet)
 library(extrafont)
 loadfonts(device = "win")
 
+setwd('/Users/seankelley/Twitter_Depression_Kelley/')
 
-
-setwd('D:/Twitter_Depression_Kelley/')
+#############################################################
+#define functions 
+#############################################################
 
 "%||%" <- function(a, b) {
   if (!is.null(a)) a else b
@@ -36,6 +44,8 @@ remove_all_outliers <- function(d){
   d
 }
 
+#############################################################
+#############################################################
 
 sensitivity_theme = theme(
   panel.background = element_blank(),

@@ -1,3 +1,9 @@
+#----------------------------------------------------------------------
+#Personalised networks for within/outside depressive episode (N = 286)
+#In participants with at least 15 days in both periods 
+#Generates data used to plot Figure 3
+#----------------------------------------------------------------------
+
 library(dplyr)
 library(ggplot2)
 library(lmerTest)
@@ -13,12 +19,7 @@ library(qgraph)
 library(graphicalVAR)
 library(NetworkComparisonTest)
 set.seed(2020)
-#Participants are included if they have at least 5 days with Tweets and at least 
-#50% of the tweets from their account are in English 
 
-#within-subject test of difference of sentiments during and off depressive episdoe
-#remove participants without a depressive episode in the past year OR
-#participants with only non-depressed/depressed data 
 
 #############################################################
 #define functions 
@@ -46,16 +47,17 @@ remove_all_outliers <- function(d){
 
 #############################################################
 #############################################################
-setwd('D:/Twitter_Depression_Kelley/')
+setwd('/Users/seankelley/Twitter_Depression_Kelley/')
 
 tweet_type = "all_tweets"
 path = paste0('Data/Sentiments/',tweet_type,"/VADER_ANEW_LIWC_complete_dep.csv",collapse = "")
 
 
-#sentiment analysis results based on tweet type 
+#Results of text analysis - LIWC text features 
 FYP_df <- read.csv(path,stringsAsFactors = FALSE)
 colnames(FYP_df)[which(colnames(FYP_df) == 'Twitter_Handle')] = 'Id'
 
+#Participant data
 participants <- read.csv('Data/Participant_Data/Twitter_Participants.csv')
 
 #############################################################
@@ -74,8 +76,8 @@ length_no.depressive.days <- list()
 for(id in unique(FYP_df$Id)){
   
   print(paste0(which(unique(FYP_df$Id) == id)/length(unique(FYP_df$Id))," ",id))
-  #de Choudhury variables 
   
+  #9 LIWC text features selected from de Choudhury et al. (2013) due to a significant association between depression severity 
   en_var <- FYP_df %>% filter(Id == id) %>% select(negemo,posemo,i,we,pro3,you,swear,article,negate,Depressed_today)
 
   
@@ -128,11 +130,11 @@ within_network <- as.data.frame(rbind(dep_net,nodep_net))
 within_network <- within_network[order(within_network$Id),]
 write.csv(within_network,file = "Data/Results/all_tweets/Node.Strength_dechoudhury_withinepisode_15d.csv")
 
+
+#----------------------------------------------------------------------
+#Adjusted and unadjusted within-subject regressions 
+
 within_network[,1:10] <- remove_all_outliers(within_network[1:10])
-
-
-               
-
 summary(lmer(Mean_Centrality ~ Depressed_Today + (1|Id),data = within_network))
 summary(lmer(ngm ~ Depressed_Today + (1|Id),data = within_network))
 summary(lmer(psm ~ Depressed_Today +  (1|Id),data = within_network))
@@ -143,8 +145,6 @@ summary(lmer(you ~ Depressed_Today + (1|Id),data = within_network))
 summary(lmer(swr ~ Depressed_Today +  (1|Id),data = within_network))
 summary(lmer(art ~ Depressed_Today +   (1|Id),data = within_network))
 summary(lmer(ngt ~ Depressed_Today +  (1|Id),data = within_network))
-
-
 
 summary(lmer(Mean_Centrality ~ Depressed_Today + Days + (1|Id),data = within_network))
 summary(lmer(ngm ~ Depressed_Today +  Days + (1|Id),data = within_network))

@@ -1,3 +1,7 @@
+#----------------------------------
+#Figure 3: Personalised network connectivity increases during a depressive episode for specific symptoms 
+#----------------------------------
+
 library(lmerTest)
 library(readr)
 library(tidyr)
@@ -15,7 +19,7 @@ loadfonts(device = "win")
 
 options(scipen=999)
 
-setwd('D:/Twitter_Depression_Kelley/')
+setwd('/Users/seankelley/Twitter_Depression_Kelley/')
 
 "%||%" <- function(a, b) {
   if (!is.null(a)) a else b
@@ -145,54 +149,15 @@ sensitivity_theme = theme(
   axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
   axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
 ##################################################################################################
+#personalised networks strength centralities of within/outside episode periods
 dc_net <- read.csv('Data/Results/all_tweets/Node.Strength_dechoudhury_withinepisode_15d.csv')
-strength.stability <- read.csv("Data/Results/all_tweets/Strength_Stability_bootnet.csv")
 dc_net <- dc_net[,-1]
 dc_net[,1:11] <- remove_all_outliers(dc_net[1:11])
 
-
-#dc_net <- as.data.frame(cbind(dc_net,strength.stability$strength))
-#colnames(dc_net)[17] <- "strength.stability"
-
-
-g1 <- ggplot(data = dc_net, aes(y = Days, x = as.factor(Depressed_Today), fill = as.factor(Depressed_Today))) +
-   geom_boxplot(width = .2, guides = FALSE, outlier.shape = NA, alpha = 0.5) + scale_fill_manual(values=c("darkblue", "red"))+
-  sensitivity_theme + xlab("") + ylab("Days\n") +
-  scale_x_discrete(labels=c("0" = "Outside Episode", "1" = "Within Episode"))
-
-
-g2 <- ggplot(data = dc_net, aes(x = Days, y = Mean_Centrality,color = as.factor(Depressed_Today))) + geom_point(alpha= 0.5,size = 3) + 
-         sensitivity_theme + ylab("Global Network Connectivity\n") + 
-  scale_color_manual(values=c("darkblue", "red")) +
-  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black")
-
-g1+g2 + plot_annotation(tag_levels = 'A')
-
+###################################################################################################
 ###################################################################################################
 
-g3 <- ggplot(data = dc_net, aes(x = Days, y = strength.stability,color = as.factor(Depressed_Today))) + geom_point() + 
-  sensitivity_theme  + ylab("Strength Stability\n") + geom_hline(yintercept = 0.25,color="blue", linetype="dashed", size=1) +
-  scale_color_manual(values=c("darkblue", "red"))
-
-g4 <- ggplot(data = dc_net, aes(y = strength.stability, x = as.factor(Depressed_Today), fill = as.factor(Depressed_Today))) +
-  geom_boxplot(width = .2, guides = FALSE, outlier.shape = NA, alpha = 0.5) + scale_fill_manual(values=c("darkblue", "red"))+
-  sensitivity_theme + xlab("") + ylab("Strength Stability\n") +
-  scale_x_discrete(labels=c("0" = "Outside Episode", "1" = "Within Episode"))
-
-
-g5 <- ggplot(data = dc_net, aes(x = strength.stability, y = Mean_Centrality,color = as.factor(Depressed_Today))) + geom_point() + 
-  sensitivity_theme  + xlab("Strength Stability") + ylab("Global Network Strength\n") + geom_vline(xintercept = 0.25,color="blue", linetype="dashed", size=1) +
-  scale_color_manual(values=c("darkblue", "red"))
-
-
-combined <- g3+ g4 + g5 + plot_annotation(tag_levels = 'A')
-
-
-#tiff("Figures/strength_stability_Within_episode.tiff", units="cm", width=70, height=30, res=600)
-#combined
-#dev.off()
-
-###################################################################################################
+#Unadjusted GLMs
 
 summary(lmer(Mean_Centrality ~ Depressed_Today + (1|Id),data = dc_net))
 summary(lmer(ngm ~ Depressed_Today + (1|Id),data = dc_net))
@@ -205,7 +170,7 @@ summary(lmer(swr ~ Depressed_Today + (1|Id),data = dc_net))
 summary(lmer(art ~ Depressed_Today + (1|Id),data = dc_net))
 summary(lmer(ngt ~ Depressed_Today + (1|Id),data = dc_net))
 
-
+#Adjusted GLMs for number of days 
 summary(lmer(Mean_Centrality ~ Depressed_Today + Days + (1|Id),data = dc_net))
 summary(lmer(ngm ~ Depressed_Today +  Days + (1|Id),data = dc_net))
 summary(lmer(psm ~ Depressed_Today +  Days +(1|Id),data = dc_net))
@@ -237,12 +202,9 @@ my_datal$NetworkVariable <- as.character(my_datal$NetworkVariable)
 ##################################################################################################
 #################################################################################################
 
-mod.global <- (lmer(Mean_Centrality ~ Depressed_Today + Days + (1|Id),data = dc_net))
-dc_net$predicted <- predict(mod.global,dc_net)
-
-g1_violin <- ggplot(data = dc_net, aes(y = predicted, x = as.factor(Depressed_Today), fill = as.factor(Depressed_Today))) +
+g1_violin <- ggplot(data = dc_net, aes(y = Mean_Centrality, x = as.factor(Depressed_Today), fill = as.factor(Depressed_Today))) +
   geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .8) +
-  geom_point(aes(y = predicted, color = as.factor(Depressed_Today)), position = position_jitter(width = .15), size = 3, alpha = 1) +
+  geom_point(aes(y = Mean_Centrality, color = as.factor(Depressed_Today)), position = position_jitter(width = .15), size = 3, alpha = 1) +
   geom_boxplot(width = .2, size = 1, guides = FALSE, outlier.shape = NA, alpha = 0.5) +
   expand_limits(x = 1) +
   guides(fill = FALSE) +
@@ -251,38 +213,35 @@ g1_violin <- ggplot(data = dc_net, aes(y = predicted, x = as.factor(Depressed_To
   scale_fill_manual(values = c("grey54","grey36"))+                  
   theme_bw() +
   raincloud_theme + xlab("Depressed Period in Past Year") + 
-  ylab("Global Network Strength\nRegression Coefficient\n") +
+  ylab("Global Network Strength\n") +
   scale_x_discrete(labels=c("0" = "Outside Episode", "1" = "Within Episode"))
 
-#need to sort through colors 
-g2 <- ggplot(data = my_datal, aes(y = NodeStrength, x = NetworkVariable,
-                            fill = interaction(NetworkVariable,Depressed_Today))) +
-  geom_point(aes(y = NodeStrength, color = interaction(NetworkVariable,Depressed_Today)), 
-             position = position_jitterdodge(jitter.width = 1.5,dodge.width = 0.75), size = 1.75, alpha = 1) +
-  geom_boxplot(width = .5, guides = FALSE, outlier.shape = NA, alpha = 0.65,position=position_dodge(width=0.75))+
-  expand_limits(x = 1) +  theme_bw() +
-  raincloud_theme2 +
-  scale_color_manual(values = c("#647da2","#8bcbdc","#afd588","#eab779","#ede35f",
-                                "#db70ad","#b79265","#62a3c0","#66aa9a","#d06873",
-                                "#08306B","#46ACC8","#7FBC41","#DD8D29","#E2D200",
-                                "#C51B7D","#8C510A","#046C9A","#0B775E","#B40F20")) + 
-  
-  scale_fill_manual(values = c("#647da2","#8bcbdc","#afd588","#eab779","#ede35f",
-                               "#db70ad","#b79265","#62a3c0","#66aa9a","#d06873",
-                               "#08306B","#46ACC8","#7FBC41","#DD8D29","#E2D200",
-                               "#C51B7D","#8C510A","#046C9A","#0B775E","#B40F20"))  +
-  xlab("\nLIWC Text Feature") + ylab("Individual Node Strength\n")
+#boxplots of individual node strengths 
+#g2 <- ggplot(data = my_datal, aes(y = NodeStrength, x = NetworkVariable,
+#                            fill = interaction(NetworkVariable,Depressed_Today))) +
+#  geom_point(aes(y = NodeStrength, color = interaction(NetworkVariable,Depressed_Today)), 
+#             position = position_jitterdodge(jitter.width = 1.5,dodge.width = 0.75), size = 1.75, alpha = 1) +
+#  geom_boxplot(width = .5, guides = FALSE, outlier.shape = NA, alpha = 0.65,position=position_dodge(width=0.75))+
+#  expand_limits(x = 1) +  theme_bw() +
+#  raincloud_theme2 +
+#  scale_color_manual(values = c("#647da2","#8bcbdc","#afd588","#eab779","#ede35f",
+#                                "#db70ad","#b79265","#62a3c0","#66aa9a","#d06873",
+#                                "#08306B","#46ACC8","#7FBC41","#DD8D29","#E2D200",
+#                                "#C51B7D","#8C510A","#046C9A","#0B775E","#B40F20")) + 
+#  
+#  scale_fill_manual(values = c("#647da2","#8bcbdc","#afd588","#eab779","#ede35f",
+#                               "#db70ad","#b79265","#62a3c0","#66aa9a","#d06873",
+#                               "#08306B","#46ACC8","#7FBC41","#DD8D29","#E2D200",
+#                               "#C51B7D","#8C510A","#046C9A","#0B775E","#B40F20"))  +
+#  xlab("\nLIWC Text Feature") + ylab("Individual Node Strength\n")
 
 
-combined <- (g2 + g1_violin)
 
 
-combined
-
-
-tiff("Figures/Within_episode.tiff", units="cm", width=70, height=30, res=600)
-combined
-dev.off()
+#combined <- (g2 + g1_violin)
+#tiff("Figures/Within_episode.tiff", units="cm", width=70, height=30, res=600)
+#combined
+#dev.off()
 
 #-----------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------
@@ -314,16 +273,16 @@ cbpalette <- c("#DD8D29","#E2D200","#46ACC8","#0B775E","#C51B7D","#B40F20","#8C5
                "#08306B","#7FBC41")
 
 #------------------------------------------------------------------------------
-mod.ngm <- (lmer(ngm ~ Depressed_Today + Days + (1|Id),data = dc_net))
-mod.psm <- (lmer(psm ~ Depressed_Today + Days + (1|Id),data = dc_net))
-mod.i <- (lmer(i ~ Depressed_Today + Days + (1|Id),data = dc_net))
-mod.we <- (lmer(we ~ Depressed_Today + Days + (1|Id),data = dc_net))
-mod.pro3 <- (lmer(pr3 ~ Depressed_Today + Days+ (1|Id),data = dc_net))
+mod.ngm <- (lmer(ngm ~ Depressed_Today + (1|Id),data = dc_net))
+mod.psm <- (lmer(psm ~ Depressed_Today + (1|Id),data = dc_net))
+mod.i <- (lmer(i ~ Depressed_Today + (1|Id),data = dc_net))
+mod.we <- (lmer(we ~ Depressed_Today + (1|Id),data = dc_net))
+mod.pro3 <- (lmer(pr3 ~ Depressed_Today + (1|Id),data = dc_net))
 
-mod.you <- (lmer(you ~ Depressed_Today + Days + (1|Id),data = dc_net))
-mod.swr <- (lmer(swr ~ Depressed_Today + Days + (1|Id),data = dc_net))
-mod.art <- (lmer(art ~ Depressed_Today + Days + (1|Id),data = dc_net))
-mod.ngt <- (lmer(ngt ~ Depressed_Today + Days + (1|Id),data = dc_net))
+mod.you <- (lmer(you ~ Depressed_Today + (1|Id),data = dc_net))
+mod.swr <- (lmer(swr ~ Depressed_Today + (1|Id),data = dc_net))
+mod.art <- (lmer(art ~ Depressed_Today + (1|Id),data = dc_net))
+mod.ngt <- (lmer(ngt ~ Depressed_Today + (1|Id),data = dc_net))
 
 ints <- c(coefficients(summary(mod.ngm))[1],coefficients(summary(mod.psm))[1],coefficients(summary(mod.i))[1],
            coefficients(summary(mod.we))[1],coefficients(summary(mod.pro3))[1],
@@ -373,6 +332,6 @@ combined <- g1_violin + zscore.plot
 
 combined
 
-tiff("Figures/Within_episode_days.tiff", units="cm", width=93, height=40, res=600)
+tiff("Figures/Figure3.tiff", units="cm", width=93, height=40, res=600)
 combined
 dev.off()
