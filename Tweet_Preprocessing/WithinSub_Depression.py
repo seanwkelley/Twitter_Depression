@@ -272,12 +272,12 @@ for i in range(0,len(file_names)):
 
 
     #if date falls within a depressive episode, then set the depressed_today column value to 1
-    nl = sentiments_handle.columns
-    matching = [s for s in nl if "Episode_" in s]
-    matching2 = [s for s in nl if "Period_" in s]
+    colnames = sentiments_handle.columns
+    matching_episode = [s for s in colnames if "Episode_" in s]
+    matching_period = [s for s in colnames if "Period_" in s]
     for i in range(0,sentiments_handle.shape[0]):
-        b = (list(sentiments_handle[matching].iloc[i]))
-        c = (list(sentiments_handle[matching2].iloc[i]))
+        b = (list(sentiments_handle[matching_episode].iloc[i]))
+        c = (list(sentiments_handle[matching_period].iloc[i]))
         if True in b:
             sentiments_handle['Depressed_today'].iloc[i] = 1
         if True in c:
