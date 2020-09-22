@@ -1,4 +1,7 @@
-#Sentiment Analysis of all participants in Participants.csv file 
+#Get the duration of individual depressive episodes and the time between episodes 
+#Episodes are recoded as not depressed periods if they are less than 2 weeks long 
+#Episodes that are at least 2 weeks long but separated by less than 2 weeks are merged together 
+
 import os
 import re
 import pandas as pd
@@ -92,8 +95,7 @@ def submission_date(handle):
     episodes = episodes[4]
     return (episodes)
 ###########################################################################################
-#read in the sentiments from VADER, ANEW, and LIWC 
-#rename columns that were altered by LIWC and drop unnecessary or redundant columns 
+#read in LIWC text features 
 os.chdir(path)
 
 file = open('Data/Participant_Data/key.key', 'rb')
@@ -105,7 +107,7 @@ file.close()
 VADER_ANEW_LIWC = pd.read_csv(path + 'Data/Sentiments/' + tweet_type + '/' + 'VADER_ANEW_LIWC_complete_dep.csv',encoding="utf-8")
 VADER_ANEW_LIWC = VADER_ANEW_LIWC[~VADER_ANEW_LIWC['Date'].isnull()]
 
-
+#list of participant Ids
 id_unique = list(VADER_ANEW_LIWC['Twitter_Handle'].unique())
 
 
@@ -140,8 +142,14 @@ Participant_info['missing_days'] = ""
 
 start_dates = []
 unique_ids = []
+
+#does the date fall within a depressive episode?
 dep_ep = []
+
+
 diff_ep_main = []
+
+#between depressive episode duration
 bet_ep_duration = []
 
 episode_start = []; episode_end = []
@@ -193,6 +201,7 @@ for name in file_names:
 
     dep_gap = 15
     
+    #merge depressive episodes that are separted by less than 2 weeks 
     print(start)
     print(end)
     while len(start) >= 2:
