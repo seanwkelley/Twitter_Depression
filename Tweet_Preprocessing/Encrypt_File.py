@@ -1,3 +1,5 @@
+#Encrypt partcipant data 
+
 import os
 import xlsxwriter
 import xlrd
@@ -12,8 +14,8 @@ from io import StringIO
 #need to download the stopwords the first time 
 #############################################################################################################
 #Set path directory and type of information to run sentiment analysis on likes (0), retweets (1), tweets (2)
-# path="D:/Analysis2_Oct2019/"
-path="D:/Twitter_Depression_Kelley/Data/Participant_Data/"
+
+path="/Users/seankelley/Twitter_Depression_Kelley/Data/Participant_Data/"
 os.chdir(path)
 
 ##############################
