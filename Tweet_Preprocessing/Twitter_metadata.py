@@ -1,4 +1,6 @@
-#Sentiment Analysis of all participants in Participants.csv file 
+#Get Twitter metadata from Json files
+#1. Number of Tweets, Retweets, Likes
+#2. Number of followers and followees 
 
 import os
 import re
@@ -151,10 +153,12 @@ for i in range(0,len(file_names)):
     recruitment = recruitment_type(handle)
     print(recruitment)
     display_time = 3600*24
-    # twitter_json = pd.read_json("Data/Raw_Tweets/" + recruitment + '/' + handle + "/" + handle + '.json',encoding="utf-8",lines=True)
-    # user_profile = str(twitter_json['user'][0])
-    # followers_count = int((re.search("'followers_count':(.*), 'friends_count':", user_profile)).group(1))
-    # followees_count = int((re.search("'friends_count':(.*), 'listed_count':", user_profile)).group(1))
+    twitter_json = pd.read_json("Data/Raw_Tweets/" + recruitment + '/' + handle + "/" + handle + '.json',encoding="utf-8",lines=True)
+    user_profile = str(twitter_json['user'][0])
+
+    #get followers and followees from count 
+    followers_count = int((re.search("'followers_count':(.*), 'friends_count':", user_profile)).group(1))
+    followees_count = int((re.search("'friends_count':(.*), 'listed_count':", user_profile)).group(1))
 
     twitter_vader = pd.read_csv("Data/Raw_Tweets/" + recruitment + '/' + handle + "/" + handle + '_tweets.csv',encoding="utf-8")
     twitter_vader.columns = ['id','time','tweets','favorites','reply']
@@ -195,13 +199,13 @@ for i in range(0,len(file_names)):
     retweet_num.append(twitter_vader[(twitter_vader['favorites']=='retweet')].shape[0])
     like_num.append(twitter_vader[(twitter_vader['favorites']=='like')].shape[0])
 
-    # followers.append(followers_count)
-    # followees.append(followees_count)
+    followers.append(followers_count)
+    followees.append(followees_count)
     volume.append(volume_tweets)
     reply.append(reply_tweets)
 
-# Participant_info['followers'] = pd.DataFrame(followers)
-# Participant_info['followees'] = pd.DataFrame(followees)
+Participant_info['followers'] = pd.DataFrame(followers)
+Participant_info['followees'] = pd.DataFrame(followees)
 Participant_info['volume'] = pd.DataFrame(volume)
 Participant_info['reply'] = pd.DataFrame(reply)
 
@@ -213,4 +217,4 @@ Participant_info['tweet'] = pd.DataFrame(tweet_num)
 #use times from all tweets to derive the following results
 #insomnia index 
 
-Participant_info.to_csv('Data/Participant_Data/FYP.SG_Twitter_Participants_11.08.csv',index = False)
+Participant_info.to_csv('Data/Participant_Data/FYP.SG_Twitter_Participants.csv',index = False)
