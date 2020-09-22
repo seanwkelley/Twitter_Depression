@@ -1,2 +1,2 @@
-D:/Twitter_Depression_Kelley/
+/Users/seankelley/Twitter_Depression_Kelley/
 all_tweets
