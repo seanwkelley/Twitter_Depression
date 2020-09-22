@@ -1,4 +1,4 @@
-
+#Download last 3200 Tweets and 3200 likes from a given user's account 
  
 #!/usr/bin/env python
 # encoding: utf-8
@@ -19,20 +19,11 @@ path = set_wd_path[0] + "Raw_Tweets/"
 
 os.chdir(path)
 
-#Twitter API credentials
-
-#Use my Brain 
-consumer_key = 'yO4y37VhRqng2hF7iVBKa6SOZ'
-consumer_secret = 'WRsXXvJwRuASYxR87kiJtUylyNYS5VOy8yMigNzLG7PiccauZK'
-access_key = '1085845518146813952-1H9W23HCo5zRhjEPCZF6j8pMlIz4UV'
-access_secret = 'hfHzOlGqlS2vrCE1y8LopQUPagaSpGO3BL97mJFu337rY'
-
-#Sean's personal account 
-
-# consumer_key = 'Bx5Ckb1P8gPHEdz08KPTv11ls'
-# consumer_secret = 'eskUzg0Kp8soOnnOgGbgGoP0H19HWCu6bzQ7WaJY8YvcDF64CJ'
-# access_key = '1112405614267912192-cxMYozJ8uwsBPC0xp4dgoQHMGlPASZ'
-# access_secret = '0PZ4X80vEHlBDyE5NcBoFH97k3NKuISH0gDE8gKlMReoH'
+#Twitter API credentials, need to add Keys but removed for public distribution 
+consumer_key = ''
+consumer_secret = ''
+access_key = ''
+access_secret = ''
 
 
 def find_retweets(input_text):
@@ -212,5 +203,5 @@ def get_all_tweets(screen_name):
 	pass
 	
 if __name__ == '__main__':
-	#pass in the username of the account you wantto download
-	get_all_tweets("bebeumi0810")
+	#pass in the username of the account you want to download
+	get_all_tweets("")
