@@ -455,6 +455,7 @@ for i in range(0,len(file_names)):
     twitter_vader = twitter_vader[(twitter_vader['time'] >= beginning_date) & (twitter_vader['time'] <= submission_date2)]
     min_date = datetime(beginning_date.year, beginning_date.month, beginning_date.day)
     twitter_vader['min_date'] = min_date
+    #set day 1 year prior to study completion as 0 
     twitter_vader['delta_time'] =  ((twitter_vader['time']) -  (twitter_vader['min_date']))/np.timedelta64(1, 's')
 
     #sort the times from beginning to end 
@@ -469,13 +470,16 @@ for i in range(0,len(file_names)):
 
 
     twitter_vader['tidy_tweet'] = np.vectorize(Clean_Tweets)(twitter_vader['tweets'],"VADER")
- 
+    
+    #group Tweets sent on the same day together 
     sentiment_tweets_vader = pd.DataFrame(twitter_vader.groupby('delta_time')['tidy_tweet'].apply(list))
     sentiment_tweets_vader.index.name = "Day"
     sentiment_tweets_vader.reset_index(inplace=True)
 
+    #merge Tweets together into one string for text analysis 
     sentiment_tweets_vader.tidy_tweet = ([' '.join(x) for x in sentiment_tweets_vader.tidy_tweet])
     # sentiment_tweets_vader['scores'] = np.vectorize(sentiment_analyzer_scores)(sentiment_tweets_vader['tidy_tweet'])
+    
 
     todays_date = []
     for date in sentiment_tweets_vader['Day']:
