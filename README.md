@@ -1,4 +1,4 @@
-# Twitter_Depression
+# Within-subject changes in network connectivity occur during an episode of depression: evidence from a longitudinal analysis of social media posts.
 
 The analysis code is separated into 4 folders: Tweet Preprocessing, Network Analysis, Control Analysis, and Graphs.
 Tweet Preprocessing contains all the code necessary to download Tweets from an individual user account and process those Tweets into a format that is 
@@ -46,7 +46,7 @@ Networks are constructed from the following 9 text features that were found to b
 1st person singular/plural, 2nd person singular, 3rd person pronouns, negative and positive emotions, articles, swear words, and negation words
 We examined the association between individual and global network connectivity within vs. outside a depressive episode.
 
-2.personalizednetworks_depression_severity 
+2. personalizednetworks_depression_severity 
 
 Contructs personalised networks using the same 9 text features as above for all participants with at least 30 days of Tweets (N = 946).
 We then correlated the individual and global network connectivity with current depression severity. 
