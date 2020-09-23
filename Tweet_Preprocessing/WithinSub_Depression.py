@@ -1,3 +1,5 @@
+#Edit output text file from LIWC text analysis to add a column indicating whether a 
+
 #Determine whether a day occurs within or outside a depressive episode within indiviudal time series 
 #Merge depressive episodes together if separated by less than 2 weeks
 #Exclude episodes that are shorter than 2 weeks 
@@ -123,22 +125,18 @@ Participant_info = Dates = pd.read_csv(data)
 file_names = list(Participant_info['Twitter_Handle'])
 id_dict = dict(zip(Participant_info['Twitter_Handle'],Participant_info['Id']))
 
-#results of sentiment analysis 
+#results of text analysis from Textual_Analysis.py and after renaming variables using Rename_LIWC.py
 VADER_ANEW_LIWC = pd.read_csv(path + 'Data/Sentiments/' + tweet_type + '/' + 'VADER_ANEW_LIWC_complete_dep.csv',encoding="utf-8")
-
-print(type(VADER_ANEW_LIWC))
-
 #number of seconds in a day 
 display_time = 3600*24
 
 #duration of critical transition prior to depression onset 
 ct = 60
-
 Participant_info['missing_days'] = ""
-
 start_dates = []
 sentiments_dep = []
 
+#loop over participants 
 for i in range(0,len(file_names)):
     
     name = file_names[i]
@@ -160,6 +158,8 @@ for i in range(0,len(file_names)):
     for i in episodes:
         a = get_dates(handle,i)
         if (len(a) != 0):
+
+            #get start and end dates of individual depressive episodes
             start_depression_initial = a[0]
             end_depression_initial = a[1]
 
@@ -243,6 +243,8 @@ for i in range(0,len(file_names)):
     sentiments_handle = VADER_ANEW_LIWC[VADER_ANEW_LIWC['Twitter_Handle'] == random_id]
     sentiments_handle['Day']  = sentiments_handle['Day'].astype(str).astype(int)
 
+    #set all days as non-depressed to begin with and then later flip them to depressed 
+    #if they occur during a depressive episode 
     try: 
         day_range = set(range(np.min(sentiments_handle['Day']),np.max(sentiments_handle['Day'])+1))
         diff_days = day_range.symmetric_difference(sentiments_handle['Day'])
@@ -266,6 +268,7 @@ for i in range(0,len(file_names)):
         name = "Episode_" + str(j)
         name2 = "Period_" + str(j)
 
+        #days in depressive episode 
         sentiments_handle[name] = ((sentiments_handle['Day'] >= depressive_episodes['Start'][j]) & (sentiments_handle['Day'] <= depressive_episodes['End'][j]))
         #days in the critical transition period prior to the onset of a depressive episode 
         sentiments_handle[name2] = ((sentiments_handle['Day'] >= depressive_episodes['Start'][j]-ct) & (sentiments_handle['Day'] <= depressive_episodes['Start'][j]-1)) 
@@ -286,7 +289,7 @@ for i in range(0,len(file_names)):
 
 
 
-#remove columns with 'episode' in the name 
+#remove columns with 'episode' in the name to clean up data frame 
 for i in range(0,len(sentiments_dep)):
     sentiments_dep[i] = sentiments_dep[i][sentiments_dep[i].columns.drop(list(sentiments_dep[i].filter(regex='Episode_')))]
     sentiments_dep[i] = sentiments_dep[i][sentiments_dep[i].columns.drop(list(sentiments_dep[i].filter(regex='Period_')))]
