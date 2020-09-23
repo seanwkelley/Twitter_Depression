@@ -19,7 +19,7 @@ also a reply to another Tweet or a like
 
 
 Cleans all the Tweets, e.g. removes URLS, emojis, unnecessary puntuation, and other alphanumeric characters for participants with at least 5 days of Tweets
-in the past year and at least 50% of Tweets must be in English. Once the Tweets are cleaned, they are appended to a single csv file that contains the date the tweet was 
+in the past year and at least 50% of Tweets in English. Once the Tweets are cleaned, they are appended to a single csv file that contains the date the tweet was 
 written and the text for all participants. This csv file is then fed into the LIWC which analyses all the text and outputs 87 different text features
 
 3. Rename_LIWC.py 
