@@ -1,5 +1,6 @@
 #Text analysis of all participants with at least 50% of Tweets in English and at leat 5 days of tweet
 #includes code for VADER and ANEW sentiment libraries that was not used in construction of personalised networks 
+#Output of this file is read into LIWC for text analysis 
 
 import os
 import re
@@ -311,6 +312,7 @@ def is_english(sentiment_tweets):
     percent_english = len(sum_english)/len(a)
     return(percent_english)
 
+#lemmatize words into standard ending 
 def stopword_lemma(input_text):
     def get_wordnet_pos(word):
         tag = nltk.pos_tag([word])[0][1][0].upper()
@@ -325,6 +327,7 @@ def stopword_lemma(input_text):
     filtered_sentence = ' '.join(sentence)
     return(filtered_sentence)   
 
+#weighted mean of ANEW sentiments by word frequency on a given day 
 def weighted_mean(values):
     weighted_avg = np.mean(values)
     return(weighted_avg)
@@ -379,7 +382,7 @@ def recruitment_type(handle):
     recruit_2 = recruit[len(recruit) -1]
     return (recruit_2)
 
-#get timezone for loca time zone correction 
+#get timezone for local time zone correction based on lat/long from submission 
 def find_timezone(handle):
     handle_row = Dates.loc[Dates['Twitter_Handle'] == handle]
 
@@ -407,17 +410,15 @@ with open('Data/Participant_Data/Twitter_Participants.csv.encrypted', 'rb') as f
 #de-encrypt the Participants.csv data file 
 fernet = Fernet(key)
 encrypted = fernet.decrypt(data)
-
-
 participants_encrypted = str(encrypted,'utf-8')
 data = StringIO(participants_encrypted) 
-
 Participant_info = Dates = pd.read_csv(data)
 
 #get twitter handles from file names 
 #dictionary of random ids and twitter handles 
 id_dict = dict(zip(Participant_info['Twitter_Handle'],Participant_info['Id']))
 
+#list of file names 
 file_names = list(Participant_info['Twitter_Handle'])
 
 
@@ -506,6 +507,7 @@ for i in range(0,len(file_names)):
         scores =list(i.values())
         scores_list.append(scores)
 
+    #append VADER scores together into one dataframe 
     df = pd.DataFrame(np.array(scores_list).reshape(len(scores_list),4),columns =  ['negative','neutral','positive','compound'])
     sentiment_tweets_vader = pd.concat([sentiment_tweets_vader.reset_index(drop=True), df.reset_index(drop=True)], axis=1)
     sentiment_tweets_vader = sentiment_tweets_vader.drop('scores',axis=1)
@@ -526,7 +528,9 @@ for i in range(0,len(file_names)):
     #####################################################################################################
     #ANEW Sentiment Analysis
     #####################################################################################################
+    #clean tweets of punctuation, alphanumeric characters, emoji, urls etc
     twitter_anew['tidy_tweet'] = np.vectorize(Clean_Tweets)(twitter_anew['tweets'],"ANEW")
+    #lemmatize words to make them in standard form for comparison to words in ANEW library 
     twitter_anew['tidy_tweet'] = np.vectorize(stopword_lemma)(twitter_anew['tidy_tweet'])
     
     sentiment_tweets_anew = pd.DataFrame(twitter_anew.groupby('delta_time')['tidy_tweet'].apply(list))
@@ -575,7 +579,7 @@ ANEW = ANEW.drop("tidy_tweet",axis=1)
 
 
 VADER_ANEW_LIWC = pd.merge(VADER, ANEW, on=['Twitter_Handle','Day']) 
-
+#reorder dataframe 
 VADER_ANEW_LIWC = VADER_ANEW_LIWC[['Date','Day', 'Twitter_Handle', 'tidy_tweet', 'recruitment_type','negative','neutral',
 'positive','compound','valence','arousal','dominance']]
 
