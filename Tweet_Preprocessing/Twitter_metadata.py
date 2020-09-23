@@ -169,6 +169,7 @@ for i in range(0,len(file_names)):
     twitter_vader['TimeZone'] = find_timezone(handle)
     #Add UTC offset to GMT times
     submission_date2 = parser.parse(submission_date_initial)
+    #beginning date of data to include 
     beginning_date = submission_date2 - relativedelta(years=1)
     
     print(submission_date2)
