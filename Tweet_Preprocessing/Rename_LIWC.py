@@ -27,14 +27,11 @@ os.chdir(path)
 VADER_ANEW_LIWC = pd.read_csv(path + 'Data/Sentiments/' + tweet_type + '/' + 'VADER_ANEW_LIWC_complete.csv',encoding="utf-8")
 
 #rename columns that are changed in LIWC 
-#keep or drop the text of tweets 
-#VADER_ANEW_LIWC = VADER_ANEW_LIWC.drop(['C'],axis=1)
-
 VADER_ANEW_LIWC = VADER_ANEW_LIWC.rename({'A':'Date','B': 'Day', 'C': 'Twitter_Handle','D':'Tweets','E':'recruitment_type','F':'negative',
 	'G':'neutral','H':'positive','I':'compound','J':'valence','K':'arousal','L':'dominance'}, axis=1)
 
 
-#columns to drop 
+#drop variables that are not needed (VADER sentiments) and puntucation that does not mark the end of a sentence 
 VADER_ANEW_LIWC = VADER_ANEW_LIWC.drop(['negative','neutral','positive','compound','valence','Comma',
 						'Colon','SemiC','Dash','Quote','Parenth','OtherP'],axis=1)
 
