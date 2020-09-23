@@ -25,7 +25,7 @@ consumer_secret = ''
 access_key = ''
 access_secret = ''
 
-
+#determine if a tweet is a retweet 
 def find_retweets(input_text):
 	input_text = str(input_text)
 	value = 'tweet'
@@ -38,6 +38,7 @@ def find_retweets(input_text):
 	    pass
 	return(value)
 
+#determine if a tweet is a reply to another tweet 
 def find_replies(input_text):
 	input_text = str(input_text)
 	value = 'not_reply'
@@ -103,7 +104,7 @@ def get_all_tweets(screen_name):
 	pass
 
 	##################################################################################################
-	#favorite Tweets
+	#favorite Tweets, get likes from account 
 	alltweets = []	
 	
 	#make initial request for most recent tweets (200 is the maximum allowed count)
@@ -140,13 +141,14 @@ def get_all_tweets(screen_name):
 		#transform the tweepy tweets into a 2D array that will populate the csv	
 		outtweets2 = [[tweet.id_str, tweet.created_at, tweet.full_text.encode("utf-8")] for tweet in alltweets]
 
+		#save additional metadata into a json file 
 		filename = screen_name + "_favorites.json" 
 		with open(filename, 'a') as f:
 		    for tweet in alltweets:
 		        json.dump(tweet._json, f)
 		        f.write('\n')
 		
-		#original tweets
+		#tweets
 		outtweets_pd = pd.DataFrame(outtweets, columns = ["id","created_at","text"])
 		outtweets_pd['created_at'] = pd.to_datetime(outtweets_pd['created_at'])
 		outtweets_pd['favorites'] = 1 
