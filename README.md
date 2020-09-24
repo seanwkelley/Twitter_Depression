@@ -18,7 +18,6 @@ also a reply to another Tweet or a like
 
 ### 2. Textual_Analysis.py 
 
-
 Cleans all the Tweets, e.g. removes URLS, emojis, unnecessary puntuation, and other alphanumeric characters for participants with at least 5 days of Tweets
 in the past year and at least 50% of Tweets in English. Once the Tweets are cleaned, they are appended to a single csv file that contains the date the tweet was 
 written and the text for all participants. This csv file is then fed into the LIWC which analyses all the text and outputs 87 different text features
@@ -52,10 +51,6 @@ We examined the association between individual and global network connectivity w
 
 Contructs personalised networks using the same 9 text features as above for all participants with at least 30 days of Tweets (N = 946).
 We then correlated the individual and global network connectivity with current depression severity. 
-
-### personalised_networks_depression_severity_no_pro3.R
-
-Personalised networks of all participants constructed with 8 LIWC text features, omitting 3rd person pronouns. 
 
 ## Control Analysis 
 
