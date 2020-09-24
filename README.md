@@ -67,6 +67,10 @@ Generates personalised networks constructed from features that are either signif
 Using these new features, networks are constructed for both within and outside episode periods. This allows us to test the specificity of our findings to the particular 
 selection of LIWC text features. 
 
+### 3. personalised_networks_depression_severity_no_pro3.R
+
+Personalised networkes of all participants (N = 946) with at least 30 days of Tweets constructed from 8 LIWC text features, omitting 3rd person pronouns. 
+
 ## Graphs
 
 ### 1. Figure1.R 
