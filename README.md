@@ -53,6 +53,10 @@ We examined the association between individual and global network connectivity w
 Contructs personalised networks using the same 9 text features as above for all participants with at least 30 days of Tweets (N = 946).
 We then correlated the individual and global network connectivity with current depression severity. 
 
+### personalised_networks_depression_severity_no_pro3.R
+
+Personalised networks of all participants constructed with 8 LIWC text features, omitting 3rd person pronouns. 
+
 ## Control Analysis 
 
 ### 1. randomize_episode_identifier.R 
