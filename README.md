@@ -7,7 +7,40 @@ episode periods in a subset of participants. Control Analysis contains code to r
 depressive episode periods, and construct a network without 3rd person pronouns. Finally, Graphs has the code to reproduce all figures and tables in the 
 main and supplementary text. 
 
+## OS Requirements
+This software is supported for macOs. The package has been tested on the following system:
 
+macOS: Mojave (10.14.1)
+
+
+## Python Dependencies
+
+pandas 
+numpy 
+nltk
+dateutil
+datetime
+langdetect
+seaborn 
+re
+spacy
+shutil
+stat
+
+## R Dependencies
+
+dplyr
+ggplot2
+lmerTest
+broom
+reshape2
+stringr
+roll
+zoo
+rlang)
+bootnet
+qraph
+graphicalVAR
 
 ## Tweet Preprocessing
 
