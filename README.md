@@ -103,58 +103,84 @@ selection of LIWC text features.
 
 Personalised networkes of all participants (N = 946) with at least 30 days of Tweets constructed from 8 LIWC text features, omitting 3rd person pronouns. 
 
+### 4. hierarchical_random_networks.R
+
+100 random random networks from text features that are either significantly or not-significantly associated with current depression severity, excluding LIWC supra-categories
+
+
 ## Graphs
 
 ### 1. Figure1.R 
 
 Associations between current depression severity and 9 LIWC text features averaged over the past year
 
-### 2. Figure2_TableS2.R 
+### 2. Figure2AB.R/Figure2C.R 
 
 Figure 2 is the association between individual and global network connectivity with current depression severity. 
-Table S2 tests whether or not those associations still 
-hold after correcting for the number of days of Tweets that the networks are constructed from 
 
-### 3. Figure2C.R
-
-Mean personalised network connectivity of all participants (N = 946) with at least 30 days of Tweets 
-
-### 4. Figure3.R 
+### 3. Figure3.R 
 
 Association between within-episode period and individual/global network strength 
+
+### 4. Figure4.R 
+
+The generality of within-subject changes in network connectivity to other depression-relevant networks
 
 ### 5. Table1.R 
 
 Demographic and Twitter characteristics of full sample and split by participants who did/did not report a depressive episode in the past year
 
-### 6. FigureS1.R
+### 6. Table2.R 
 
-Affect of number on days on global network connectivity.
+Association between mean text features and depression severity
 
-### 7. FigureS2.R
+### 7. FigureS1A.R/FigureS1BC.R
+
+Half-Split reliability of primary 9 node network.
+
+### 8. FigureS2.R
+
+Random networks of 9 text features either significantly (‘Depression Relevant’) or not significantly (‘Depression Irrelevant’) associated with current depression excluding LIWC supra-categories. 
+
+### 9. FigureS2.R
 
 The association between network connectivity and depression severity after removal of 3rd person pronouns 
 
-### 8. FigureS3.R
+### 10. FigureS3.R
 
-Graph of permutation test results from randomize_episode_identifier.R 
+The effect of days on global network connectivity.
 
-### 9. TableS1.R
+### 11. FigureS4.R
+
+Tolerance of within subject analysis to the removal of 3rd person pronouns
+
+### 12. FigureS5.R
+
+Bootstrapped regression coefficient of change in network connectivity within a depressive episode from 80% random sub-samples of the data repeated 1,000 times
+
+### 13. FigureS6.R
+
+Permutation test randomizing within versus outside episode indicators. 
+
+### 14. TableS1.R
 
 Demographic and Twitter use characteristics of participants through either paid or free recruitment channels 
 
-### 10. TableS2.R
+### 15. TableS2.R
+
+Proportion of days with non-zero values for each of the 9 a priori text features
+
+### 16. TableS3.R
 
 Association between depression severity and increased network connectivity after controlling for number of days 
 
-### 11. TableS3.R
+### 17. TableS4.R
 
 Mixed effects models of mean level changes in 9 LIWC text features within a depressive episdode  
 
-### 12. TableS4.R
+### 18. TableS5.R
 
 Bivariate correlation between current depression severity and all LIWC text features 
-
 
 
 
