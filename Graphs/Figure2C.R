@@ -72,10 +72,11 @@ for(id in unique(FYP_df$Id)){
   
   print(paste0(which(unique(FYP_df$Id) == id)/length(unique(FYP_df$Id))," ",id))
   
-  en_var <- FYP_df %>% filter(Id == id) %>% select(negemo,posemo,i,we,pro3,you,swear,article,negate)
+  #en_var <- FYP_df %>% filter(Id == id) %>% dplyr::select(negemo,posemo,i,we,pro3,you,swear,article,negate)
+  en_var <- FYP_df %>% filter(Id == id) %>% select(i,Clout,ppron,function.,tentat,negemo,power,negate,achieve)
 
-  SDS <- as.numeric(participants %>% filter(Id == id) %>% select(Depression_zscore))
-  Dep_ep <- as.numeric(participants %>% filter(Id == id) %>% select(Dep_ep_pastyear))
+  SDS <- as.numeric(participants %>% dplyr::filter(Id == id) %>% dplyr::select(Depression_zscore))
+  Dep_ep <- as.numeric(participants %>% dplyr::filter(Id == id) %>% dplyr::select(Dep_ep_pastyear))
   
   en_var <- as.matrix(en_var)
   
@@ -113,24 +114,27 @@ strength_theme = theme(
 
 dep_array_pcc <- array(as.numeric(unlist(dep_array)), dim=c(9, 9, 946))
 dep_array_mean <- as.data.frame(apply(dep_array_pcc, c(1,2), mean))
-colnames(dep_array_mean) <- c("negemo","posemo","i","we","pro3","you","swear","article","negate")
 
 
-#network_var <- dep_array_mean
+#new names 
+colnames(dep_array_mean) <- c("Neg.Emo.","Pos. Emo.","1st Pers. Sing.","1st Pers. Pl.","3rd Pers.","2nd Pers.",
+                              "Swear","Articles","Negate")
+
 rownames(dep_array_mean) <- colnames(dep_array_mean)
-dep_array_mean <- dep_array_mean %>%  select(sort(current_vars())) %>% arrange(rownames(dep_array_mean))
+dep_array_mean <- dep_array_mean %>%  dplyr::select(sort(current_vars())) %>% dplyr::arrange(rownames(dep_array_mean))
 
 
 
-tiff("Figures/Depression_network.tiff",width = 8, height = 8, units = 'in', res = 600)
+png("Figures/Figure2C.png",width = 8, height = 8, units = 'in', res = 600)
+
 qgraph(dep_array_mean,fade=F,layout = "circle",
-       color=  c("#647da2","#8bcbdc","#afd588","#eab779","#ede35f",
-                 "#db70ad","#b79265","#66aa9a","#d06873"),
+       color = c("#66aa9a","#8bcbdc","#d06873","#db70ad","#647da2","#eab779",
+                 "#afd588","#ede35f","#b79265"),
        vTrans = 255,
        borders = FALSE,minimum = 0.008,labels = "",
        label.norm = "OOOOOO",label.cex = 2.5,
        label.fill.vertical = 1,label.fill.horizontal = 1,
        label.color = "black",label.font = 2,
        node.width = 1.25,edge.width = 5,esize = 5, lty = 1,font = 2)
-dev.off()
 
+dev.off()

@@ -1,3 +1,11 @@
+#-----------------------------------------------------------------------
+#Table S3: Controlling for days with tweets: adjusted vs unadjusted analyses 
+#for the association between depression severity and network connectivity
+#-----------------------------------------------------------------------
+
+
+
+#load necessary packages
 library(dplyr)
 library(ggplot2)
 library(lmerTest)
@@ -6,8 +14,7 @@ library(bootnet)
 library(qgraph)
 library(NetworkComparisonTest)
 set.seed(2020)
-#Sentiment analysis averaged over past year 
-#Tweets, retweets, and likes 
+
 setwd('/Users/seankelley/Twitter_Depression_Kelley/')
 
 #############################################################

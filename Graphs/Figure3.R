@@ -148,6 +148,9 @@ sensitivity_theme = theme(
   panel.grid.major = element_blank(),
   axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
   axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
+
+cbpalette <- c("#DD8D29","#E2D200","#46ACC8","#0B775E","#C51B7D","#B40F20","#8C510A",
+               "#08306B","#7FBC41")
 ##################################################################################################
 #personalised networks strength centralities of within/outside episode periods
 dc_net <- read.csv('Data/Results/all_tweets/Node.Strength_dechoudhury_withinepisode_15d.csv')
@@ -269,8 +272,8 @@ episode_depression = theme(
   axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
   axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
 
-cbpalette <- c("#DD8D29","#E2D200","#46ACC8","#0B775E","#C51B7D","#B40F20","#8C510A",
-               "#08306B","#7FBC41")
+#cbpalette <- c("#DD8D29","#E2D200","#46ACC8","#0B775E","#C51B7D","#B40F20","#8C510A",
+#               "#08306B","#7FBC41")
 
 #------------------------------------------------------------------------------
 mod.ngm <- (lmer(ngm ~ Depressed_Today + (1|Id),data = dc_net))
@@ -313,10 +316,11 @@ zscore_ci = data.frame(matrix(vector(), 9, 4,
 
 
 zscore_ci$Beta <- betas; zscore_ci$lwr.ci <- lwr.ci
-zscore_ci$upr.ci <- upr.ci; zscore_ci$Sentiment <- c("negemo", "posemo", "i", "we",
-                                                     "pro3","you","swear","article","negate")
+zscore_ci$upr.ci <- upr.ci; zscore_ci$Sentiment <- c("Neg. Emo.", "Pos. Emo.", "1st Pers. Sing.", "1st Pers. Pl.",
+                                                     "3rd Pers.","2nd Pers.","Swear","Articles","Negate")
 
 zscore_ci$Sentiment <- factor(zscore_ci$Sentiment, levels = zscore_ci$Sentiment[order(zscore_ci$Sentiment,decreasing = T)])
+
 
 zscore.plot <- ggplot(data = zscore_ci,aes(x=Sentiment, y=Beta)) + 
   geom_errorbar(aes(ymin=lwr.ci, ymax=upr.ci), width=.25,size=1.5,color = cbpalette) +  
@@ -327,11 +331,10 @@ zscore.plot <- ggplot(data = zscore_ci,aes(x=Sentiment, y=Beta)) +
              color = "navyblue", size=1.5)  
 
 
-
 combined <- g1_violin + zscore.plot 
 
 combined
 
-tiff("Figures/Figure3.tiff", units="cm", width=93, height=40, res=600)
+png("Figures/Figure3.png", units="cm", width=93, height=40, res=600)
 combined
 dev.off()

@@ -1,9 +1,6 @@
 #----------------------------------------------
-#Table S1: Bivariate correlations  between all LIWC text features and current depression severity 
+#Table S5: Bivariate correlations for all LIWC features and depression severity in full sample
 #----------------------------------------------
-#Figure S4. Tolerance of within subject analysis to the removal of 3rd person pronouns
-#----------------------------------------------
-
 
 library(dplyr)
 library(ggplot2)
@@ -87,7 +84,7 @@ summary(glm(pro3 ~ Depression_zscore, family = "gaussian",data = FYP))
 summary(glm(you ~ Depression_zscore, family = "gaussian",data = FYP))
 
 #----------------------------------------------------------------------
-correlation_depression <- FYP %>% select(colnames(FYP)[c(34:119,121)],Depression_zscore)
+correlation_depression <- FYP %>% dplyr::select(colnames(FYP)[c(34:119,121)],Depression_zscore)
 
 coeff.df = data.frame(matrix(vector(),87 , 4,
                              dimnames=list(c(), c("Beta","lwr.ci","upr.ci","p_val"))),
@@ -104,10 +101,11 @@ for(i in 1:length(colnames(correlation_depression)[1:87])){
   
 }
 coeff.df$Text_Feature <- colnames(correlation_depression)[1:87]
-coeff.df <- coeff.df %>% select(Text_Feature,Beta, lwr.ci,upr.ci, p_val)
+coeff.df <- coeff.df %>% dplyr::select(Text_Feature,Beta, lwr.ci,upr.ci, p_val)
 coeff.df[,2:5] <- apply(coeff.df[,2:5],2,function(x) as.numeric(as.character(x)))
 coeff.df[,2:5] <- apply(coeff.df[,2:5],2,function(x) round(x,digits = 3))
 coeff.df$CI <- paste0(coeff.df$lwr.ci,", ", coeff.df$upr.ci)
-coeff.df <- coeff.df %>% select(Text_Feature,Beta, CI, p_val)
+coeff.df <- coeff.df %>% dplyr::select(Text_Feature,Beta, CI, p_val)
 
-write.table(coeff.df, file = "Data/Results/all_tweets/TableS4.txt", sep = ";", quote = FALSE, row.names = F)
+
+write.table(coeff.df, file = "Data/Results/all_tweets/TableS5.txt", sep = ";", quote = FALSE, row.names = F)

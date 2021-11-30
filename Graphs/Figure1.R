@@ -88,45 +88,45 @@ FYP <- merge(participants,FYP_df_mean,by='Id')
 #scatterplots
 
 g1 <- ggplot(FYP,aes(y = negemo,x=Depression_zscore)) + geom_point(alpha= 0.8,color = "#DD8D29",size =3) + xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("negemo") 
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("Neg. Emo.") 
 
 
 g2 <- ggplot(FYP,aes(y = posemo,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#E2D200",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("posemo")
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("Pos. Emo.")
 
 g3 <- ggplot(FYP,aes(y = i,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#46ACC8",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black")+ ylab("i")
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black")+ ylab("1st Pers. Sing.")
 
 #Rushmore 1 number 3
 g4 <- ggplot(FYP,aes(y = we,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#0B775E",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black")+ ylab("we")
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black")+ ylab("1st Pers. Pl.")
 
 g5 <- ggplot(FYP,aes(y = you,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#B40F20",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black")+ ylab("you")
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black")+ ylab("2nd Pers.")
 
 g6 <- ggplot(FYP,aes(y = pro3,x=Depression_zscore)) + geom_point(alpha = 0.8,color= "#C51B7D",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black")+ ylab("pro3")
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black")+ ylab("3rd Pers.")
 
 
 g8 <- ggplot(FYP,aes(y = swear,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#8C510A",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("swear")
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("Swear")
 
 g9 <- ggplot(FYP,aes(y = negate,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#7FBC41",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("negate")
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("Negate")
 
 g10 <- ggplot(FYP,aes(y = article,x=Depression_zscore)) + geom_point(alpha = 0.8,color = "#08306B",size =3) +  xlab("SDS Summed Score") + raincloud_theme + 
-  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("article")
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") + ylab("Articles")
 
 
 combined <- (g10 + g4 + g2 ) / (g6 + g5 + g8) / (g9 + g3 + g1) +
-  plot_annotation(caption = "\n           Depression Symptom Severity (z-score)",tag_levels = 'A', 
+  plot_annotation(caption = "\n           Depression Symptom Severity (z-score)",tag_levels = 'a', 
                   theme = theme(plot.caption = element_text(size = 36,hjust = 0.5,family = "Arial")))
 
 combined <- combined & ylim(-2,4) & scale_x_continuous(breaks=number_ticks(4)) &
   theme(plot.tag = element_text(size = 36,face = "bold",family = "Arial"))
 
 
-tiff("Figures/Mean_Regression.tiff", units="cm", width=50, height=50, res=600)
+png("Figures/Figure1.png", units="cm", width=50, height=50, res=600)
 combined
 dev.off()
 

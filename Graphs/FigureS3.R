@@ -1,63 +1,118 @@
-#------------------------------------------------
-#Figure S3: Permutation test randomising the indicator (within/outside episode) per subject 100 times and comparing network strength within subject using this indicator. 
-#------------------------------------------------
+#-------------------------------------------
+#Figure S3. The effect of days on global network connectivity.
+#-------------------------------------------
 
 
+#Load necessary packages
+library(lmerTest)
+library(readr)
+library(tidyr)
 library(ggplot2)
-library(patchwork)
-library(here)
+library(Hmisc)
+library(plyr)
 library(dplyr)
+library(RColorBrewer)
+library(reshape2)
+library(patchwork)
+library(qgraph)
+library(bootnet)
+library(extrafont)
+loadfonts(device = "win")
 
 setwd('/Users/seankelley/Twitter_Depression_Kelley/')
 
-#random networks - random order of episode identifer in a priori LIWC network 
-model1_coeff <- read.csv('Data/Results/all_tweets/model1_coeff_randomize_dechoud.csv',header = F)
-colnames(model1_coeff) <- c("beta","se","pval")
+#############################################################
+#define functions 
+#############################################################
 
-#descriptive statistics of mean/standard deviation
-mean(model1_coeff$beta); sd(model1_coeff$beta)
+"%||%" <- function(a, b) {
+  if (!is.null(a)) a else b
+}
+#remove outliers 
+remove_outliers <- function(x, na.rm = TRUE, ...) {
+  s <- sd(x)
+  m <- mean(x)
+  y <- x
+  y[x > (m + 3*s)] <- NA
+  y[x < (m - 3*s)] <- NA
+  y
+}
+# function to apply to all rows
+remove_all_outliers <- function(d){
+  d[] <- lapply(d, function(x) if (is.numeric(x))
+    remove_outliers(x) else x)
+  d
+}
 
-#number of betas greater than the observed in real data 
-#number of p-values below 0.05
-length(which(abs(model1_coeff$beta) > 0.025542))/length(model1_coeff$beta)
-length(which(abs(model1_coeff$pval) < 0.05))/length(model1_coeff$pval)
+#############################################################
+#############################################################
 
-#is the mean randomised network beta significantly different from 0?
-summary(glm(beta ~ 1, data = model1_coeff))
+sensitivity_theme = theme(
+  panel.background = element_blank(),
+  legend.position = "none",
+  text = element_text(size = 36, family = "Arial"),
+  plot.margin=unit(c(1,0,0,0),"cm"),
+  axis.title.x = element_text(size = 36),
+  axis.title.y = element_text(size = 36),
+  axis.text = element_text(size = 36),
+  axis.text.x = element_text(angle = 0, vjust = 0.5,colour = "black"),
+  axis.text.y = element_text(colour = "black"),
+  plot.title = element_text(lineheight=.8, face="bold", size = 16),
+  panel.border = element_blank(),
+  panel.grid.minor = element_blank(),
+  panel.grid.major = element_blank(),
+  axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+  axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
+
+##################################################################################################
+#within episode network connectivty 
+
+dc_net <- read.csv('Data/Results/all_tweets/Node.Strength_dechoudhury_withinepisode_15d.csv')
+dc_net <- dc_net[,-1]
+dc_net[,1:11] <- remove_all_outliers(dc_net[1:11])
 
 
-#beta distribution
-m1_beta <- ggplot(data = model1_coeff, aes(x = beta))+ geom_histogram(color= "black",fill="white",bins=15) +
-  xlab("Beta") +  geom_vline(aes(xintercept = 0.025542),
-                             color="darkblue", linetype="dashed",  size=1.5) +
-  theme(text = element_text(size=40),
-        axis.text.x = element_text(colour = "black"),
-        axis.text.y = element_text(colour = "black"),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), axis.line = element_line(colour = "black")) +
-  coord_cartesian(xlim=c(-0.01, 0.03))
+g1 <- ggplot(data = dc_net, aes(y = Days, x = as.factor(Depressed_Today), fill = as.factor(Depressed_Today))) +
+  geom_boxplot(width = .2, guides = FALSE, outlier.shape = NA, alpha = 0.5) + scale_fill_manual(values=c("darkblue", "red"))+
+  sensitivity_theme + xlab("") + ylab("Days\n") +
+  scale_x_discrete(labels=c("0" = "Outside Episode", "1" = "Within Episode"))
 
-#p-value distribution
-m1_pval <- ggplot(data = model1_coeff, aes(x = pval))+ geom_histogram(color= "black",fill="white",bins=15) +
-  xlab("p-value") +geom_vline(aes(xintercept = 0.00548), 
-                            color="darkblue", linetype="dashed", size=1.5) + 
-  geom_vline(aes(xintercept = 0.05), 
-             color="red", linetype="dashed", size=1.5) + 
-                theme(text = element_text(size=40),
-                 axis.text.x = element_text(colour = "black"),
-                 axis.text.y = element_text(colour = "black"),
-                 panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                 panel.background = element_blank(), axis.line = element_line(colour = "black"),
-                 plot.margin=unit(c(0,1,0,0),"cm")) +
-  coord_cartesian(xlim=c(0, 1))
 
-#mean centrality after controlling for number of days 
-combined <- (m1_beta + m1_pval) + plot_annotation(tag_levels = 'A')
+g2 <- ggplot(data = dc_net, aes(x = Days, y = Mean_Centrality,color = as.factor(Depressed_Today))) + geom_point(alpha= 0.5,size = 3) + 
+  sensitivity_theme + ylab("Global Network Connectivity\n") + 
+  scale_color_manual(values=c("darkblue", "red")) +
+  geom_smooth(method = "lm",size = 3,se=FALSE)
 
-combined
 
-tiff("Figures/model1_dechoud_permutation_test.tiff", units="cm", width=80, height=30, res=600)
+
+
+
+
+##################################################################################################
+#Association between network connectivity and current depression severity 
+
+dc_net <- read.csv('Data/Results/all_tweets/Node.Strength_dechoudhury_episodepastyear.csv')
+dc_net <- dc_net[,-1]
+dc_net[,1:10] <- remove_all_outliers(dc_net[1:10])
+
+
+
+g3 <- ggplot(data = dc_net, aes(x = Days, y = Mean_Centrality)) + geom_point(size = 3) + 
+  sensitivity_theme + ylab("Global Network Connectivity\n")  +
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black")
+
+g4 <-  ggplot(data = dc_net, aes(x = Days, y = Depression_zscore)) + geom_point(size = 3) + 
+  sensitivity_theme + ylab("Current Depression Severity\n") +
+  geom_smooth(method = "lm",size = 3,se=FALSE,color = "black") 
+
+summary(glm(Depression_zscore ~ Days, data = dc_net))
+
+
+##################################################################################################
+
+combined <- (g3 + g4) / (g1 + g2) 
+
+
+png("Figures/FigureS3.png", units="cm", width=70, height=50, res=600)
 combined
 dev.off()
-
-
